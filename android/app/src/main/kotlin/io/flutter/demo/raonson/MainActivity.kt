@@ -1,6 +1,28 @@
-package io.flutter.demo.gallery
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.raonson.app">
 
-import io.flutter.embedding.android.FlutterActivity
+    <application
+        android:label="Raonson"
+        android:icon="@mipmap/ic_launcher">
 
-class MainActivity: FlutterActivity() {
-}
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|uiMode|locale|layoutDirection|fontScale|screenLayout|density"
+            android:windowSoftInputMode="adjustResize">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+
+        </activity>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+    </application>
+</manifest>
