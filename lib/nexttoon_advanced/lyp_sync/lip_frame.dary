@@ -1,0 +1,11 @@
+import 'phoneme.dart';
+
+class LipFrame {
+  final Phoneme phoneme;
+  final Duration timestamp;
+
+  LipFrame({
+    required this.phoneme,
+    required this.timestamp,
+  });
+}
