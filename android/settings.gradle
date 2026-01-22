@@ -6,14 +6,13 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-
-    // ✅ AGP ≥ 8.6.0
-    id("com.android.application") version "8.6.1" apply false
-
-    // ✅ Kotlin ≥ 1.8.10
-    id("org.jetbrains.kotlin.android") version "1.9.22" apply false
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
+rootProject.name = "raonson"
 include(":app")
