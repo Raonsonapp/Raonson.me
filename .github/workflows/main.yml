@@ -1,40 +1,31 @@
-name: Generate Full Project Structure
-on: [push, workflow_dispatch]
+name: Build Flutter APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
-  generate-source:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      # 1. Гирифтани коди шумо (танҳо main.dart лозим аст)
       - uses: actions/checkout@v4
 
-      # 2. Насби Flutter
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          flutter-version: '3.19.0'
+          channel: stable
+          flutter-version: 3.19.0
 
-      # 3. Сохтани лоиҳаи нави тоза (Скелет)
-      - name: Create fresh project
-        run: |
-          flutter create temp_project
-          # Ҳамаи файлҳои лоиҳаи навро ба папкаи ҷорӣ мекӯчонем
-          cp -r temp_project/* .
-          # Файлҳои пинҳониро ҳам (.gitignore ва ғайра) мекӯчонем
-          cp -r temp_project/.* . || true 
+      - name: Flutter pub get
+        run: flutter pub get
 
-      # 4. Коди main.dart-и кӯҳнаро нигоҳ медорем (агар шумо дошта бошед)
-      # Агар шумо хоҳед, ки коди худро барқарор кунед, ин қисм муҳим аст.
-      # Аммо чун мо 'flutter create'-ро дар болои коди шумо кардем, 
-      # шояд main.dart-и шумо тоза шуда бошад. 
-      # Барои ҳамин, беҳтараш коди худро дар як файли alohida нигоҳ доред ё copy-paste кунед.
+      - name: Build release APK
+        run: flutter build apk --release
 
-      # 5. Ҳама чизро ба як ZIP файл ҷамъ мекунем
-      - name: Zip the full project
-        run: zip -r full_flutter_project.zip . -x ".git/*" ".github/*"
-
-      # 6. ZIP-ро ба шумо медиҳад
-      - uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: full-source-code
-          path: full_flutter_project.zip
+          name: raonson-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
