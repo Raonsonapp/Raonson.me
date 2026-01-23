@@ -1,36 +1,40 @@
-name: Auto Create and Build APK
+name: Generate Full Project Structure
 on: [push, workflow_dispatch]
 
 jobs:
-  build:
+  generate-source:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. GitHub коди main.dart-и шуморо мегирад
+      # 1. Гирифтани коди шумо (танҳо main.dart лозим аст)
       - uses: actions/checkout@v4
 
-      # 2. Flutter-ро насб мекунад
+      # 2. Насби Flutter
       - uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: '3.19.0'
 
-      # 3. GitHub лоиҳаи нави холӣ месозад (номуш: temp_app)
-      - name: Create empty Flutter project
-        run: flutter create temp_app
-
-      # 4. Коди шуморо ба дохили лоиҳаи нав мепартояд (Overwriting)
-      - name: Copy user code to project
-        run: cp main.dart temp_app/lib/main.dart
-
-      # 5. Барномаро месозад (Build APK)
-      - name: Build APK
+      # 3. Сохтани лоиҳаи нави тоза (Скелет)
+      - name: Create fresh project
         run: |
-          cd temp_app
-          flutter build apk --release --no-tree-shake-icons
+          flutter create temp_project
+          # Ҳамаи файлҳои лоиҳаи навро ба папкаи ҷорӣ мекӯчонем
+          cp -r temp_project/* .
+          # Файлҳои пинҳониро ҳам (.gitignore ва ғайра) мекӯчонем
+          cp -r temp_project/.* . || true 
 
-      # 6. APK-ро барои скачат кардан нигоҳ медорад
+      # 4. Коди main.dart-и кӯҳнаро нигоҳ медорем (агар шумо дошта бошед)
+      # Агар шумо хоҳед, ки коди худро барқарор кунед, ин қисм муҳим аст.
+      # Аммо чун мо 'flutter create'-ро дар болои коди шумо кардем, 
+      # шояд main.dart-и шумо тоза шуда бошад. 
+      # Барои ҳамин, беҳтараш коди худро дар як файли alohida нигоҳ доред ё copy-paste кунед.
+
+      # 5. Ҳама чизро ба як ZIP файл ҷамъ мекунем
+      - name: Zip the full project
+        run: zip -r full_flutter_project.zip . -x ".git/*" ".github/*"
+
+      # 6. ZIP-ро ба шумо медиҳад
       - uses: actions/upload-artifact@v4
         with:
-          name: my-app-release
-          path: temp_app/build/app/outputs/flutter-apk/app-release.apk
+          name: full-source-code
+          path: full_flutter_project.zip
