@@ -1,37 +1,36 @@
-name: Build Flutter APK
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
+name: Auto Create and Build APK
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # 1. GitHub коди main.dart-и шуморо мегирад
+      - uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      # 2. Flutter-ро насб мекунад
+      - uses: subosito/flutter-action@v2
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          channel: 'stable'
+          flutter-version: '3.19.0'
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'
+      # 3. GitHub лоиҳаи нави холӣ месозад (номуш: temp_app)
+      - name: Create empty Flutter project
+        run: flutter create temp_app
 
-      - name: Flutter pub get
-        run: flutter pub get
+      # 4. Коди шуморо ба дохили лоиҳаи нав мепартояд (Overwriting)
+      - name: Copy user code to project
+        run: cp main.dart temp_app/lib/main.dart
 
+      # 5. Барномаро месозад (Build APK)
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          cd temp_app
+          flutter build apk --release --no-tree-shake-icons
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      # 6. APK-ро барои скачат кардан нигоҳ медорад
+      - uses: actions/upload-artifact@v4
         with:
-          name: raonson-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: my-app-release
+          path: temp_app/build/app/outputs/flutter-apk/app-release.apk
