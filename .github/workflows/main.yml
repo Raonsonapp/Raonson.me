@@ -1,30 +1,39 @@
-name: Auto Generate Project Structure
-on: [workflow_dispatch] # Инро танҳо дастӣ (бо тугма) иҷро мекунем
+name: Auto Generate and Push Project
+on: [workflow_dispatch, push]
 
 permissions:
   contents: write
 
 jobs:
-  create-structure:
+  build:
     runs-on: ubuntu-latest
     steps:
+      # 1. Кодро мегирад
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      # 2. Насби Flutter (Версияи устувор бе рақами мушаххас барои пешгирии хато)
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
-      - name: Create Flutter Project
+      # 3. Сохтани лоиҳаи Flutter дар ҳамон ҷо (In-place create)
+      - name: Create Flutter Project Structure
         run: |
-          # Агар папка холӣ набошад ҳам, маҷбуран файлҳоро месозад
-          flutter create . --project-name=my_awesome_app --org=com.example 
+          # Агар файлҳои асосӣ набошанд, онҳоро месозад
+          flutter create . --overwrite --project-name=my_app
 
-      - name: Commit and Push changes
+      # 4. Сабт ва фиристодани файлҳои нав ба GitHub (Push)
+      - name: Commit and Push Changes
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add .
-          git commit -m "Auto-generated Flutter project structure"
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          
+          # Илова кардани папкаҳои android, ios, web ва ғайра
+          git add android/ ios/ web/ pubspec.yaml .gitignore
+          
+          # Танҳо агар тағйирот бошад, commit мекунад
+          git commit -m "Fix: Added Flutter project structure (android/ios folders)" || echo "No changes to commit"
           git push
