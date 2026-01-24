@@ -47,4 +47,4 @@ jobs:
           # Тоза кардани индекс ва иловаи файлҳои нав
           git add .
           git commit -m "Full Reset: Clean Flutter project structure created" || echo "No changes"
-          git push origin main --forcname
+          git push origin main --force
