@@ -1,33 +1,50 @@
-name: Fix Project Structure
-on: [workflow_dispatch, push]
+name: Full Reset and Create
+on: [workflow_dispatch]
+
+permissions:
+  contents: write
 
 jobs:
-  repair:
+  reset-project:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install Flutter Manually
         run: |
           git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
           echo "$HOME/flutter/bin" >> $GITHUB_PATH
 
-      - name: Repair and Force Create
+      - name: Wipe and Recreate
         run: |
           export PATH="$PATH:$HOME/flutter/bin"
-          # Ин фармон файлҳои Gradle ва сохтори Android-ро аз нав месозад
-          flutter create . --overwrite --project-name=my_app
           
-          # Тафтиш мекунем, ки оё файлҳои муҳим сохта шуданд
+          # 1. Нусхаи эҳтиётии коди шуморо мегирем
+          mkdir temp_backup
+          cp -r lib temp_backup/ || echo "No lib folder"
+          cp pubspec.yaml temp_backup/ || echo "No pubspec file"
+
+          # 2. ҲАМАИ ПАПКАҲОРО ТОЗА МЕКУНЕМ (android, ios, web, test ва ғайра)
+          rm -rf android ios web test windows linux macos .metadata .google_settings
+
+          # 3. Аз нав сохтани лоиҳаи тоза
+          flutter create . --overwrite --project-name=my_app
+
+          # 4. Коди шуморо ба ҷояш бармегардонем
+          rm -rf lib
+          cp -r temp_backup/lib . || mkdir lib
+          cp temp_backup/pubspec.yaml . || echo "Using default pubspec"
+          
+          # Тафтиш мекунем, ки gradlew сохта шуд ё не
           ls -la android/
 
-      - name: Push Fixed Files to GitHub
+      - name: Push Clean Project to GitHub
         run: |
-          git config --global user.name "GitHub Action"
+          git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
-          git add android/ ios/ web/ .metadata pubspec.yaml
-          git commit -m "Fix: Added missing Gradle wrappers and Flutter structure" || echo "No changes"
-          git push
+          
+          # Тоза кардани индекс ва иловаи файлҳои нав
+          git add .
+          git commit -m "Full Reset: Clean Flutter project structure created" || echo "No changes"
+          git push origin main --force
