@@ -1,31 +1,30 @@
-name: Build Flutter APK
+name: Auto Generate Project Structure
+on: [workflow_dispatch] # Инро танҳо дастӣ (бо тугма) иҷро мекунем
 
-on:
-  workflow_dispatch:
-  push:
-    branches: [main]
+permissions:
+  contents: write
 
 jobs:
-  build:
+  create-structure:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          flutter-version: 3.19.0
+          channel: 'stable'
 
-      - name: Flutter pub get
-        run: flutter pub get
+      - name: Create Flutter Project
+        run: |
+          # Агар папка холӣ набошад ҳам, маҷбуран файлҳоро месозад
+          flutter create . --project-name=my_awesome_app --org=com.example 
 
-      - name: Build release APK
-        run: flutter build apk --release
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: raonson-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          git commit -m "Auto-generated Flutter project structure"
+          git push
