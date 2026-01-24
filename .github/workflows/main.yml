@@ -1,39 +1,33 @@
-name: Auto Generate and Push Project
+name: Fix Project Structure
 on: [workflow_dispatch, push]
 
-permissions:
-  contents: write
-
 jobs:
-  build:
+  repair:
     runs-on: ubuntu-latest
     steps:
-      # 1. Кодро мегирад
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v4
-
-      # 2. Насби Flutter (Версияи устувор бе рақами мушаххас барои пешгирии хато)
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true
+          fetch-depth: 0
 
-      # 3. Сохтани лоиҳаи Flutter дар ҳамон ҷо (In-place create)
-      - name: Create Flutter Project Structure
+      - name: Install Flutter Manually
         run: |
-          # Агар файлҳои асосӣ набошанд, онҳоро месозад
+          git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+          echo "$HOME/flutter/bin" >> $GITHUB_PATH
+
+      - name: Repair and Force Create
+        run: |
+          export PATH="$PATH:$HOME/flutter/bin"
+          # Ин фармон файлҳои Gradle ва сохтори Android-ро аз нав месозад
           flutter create . --overwrite --project-name=my_app
+          
+          # Тафтиш мекунем, ки оё файлҳои муҳим сохта шуданд
+          ls -la android/
 
-      # 4. Сабт ва фиристодани файлҳои нав ба GitHub (Push)
-      - name: Commit and Push Changes
+      - name: Push Fixed Files to GitHub
         run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "actions@github.com"
-          
-          # Илова кардани папкаҳои android, ios, web ва ғайра
-          git add android/ ios/ web/ pubspec.yaml .gitignore
-          
-          # Танҳо агар тағйирот бошад, commit мекунад
-          git commit -m "Fix: Added Flutter project structure (android/ios folders)" || echo "No changes to commit"
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add android/ ios/ web/ .metadata pubspec.yaml
+          git commit -m "Fix: Added missing Gradle wrappers and Flutter structure" || echo "No changes"
           git push
