@@ -1,50 +1,45 @@
-name: Full Reset and Create
+name: Fix Project Structure and IDs
 on: [workflow_dispatch]
 
 permissions:
   contents: write
 
 jobs:
-  reset-project:
+  fix-project:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Flutter Manually
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Wipe and Recreate Android/iOS
         run: |
-          git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-          echo "$HOME/flutter/bin" >> $GITHUB_PATH
+          # 1. Тоза кардани папкаҳои вайрон
+          rm -rf android ios web macos windows linux .metadata
 
-      - name: Wipe and Recreate
+          # 2. Сохтани лоиҳаи нав дар асоси pubspec.yaml (my_app)
+          # Мо org-ро "com.raonson" мемонем, то ID мисли хости шумо шавад
+          flutter create . --overwrite --org com.raonson --project-name my_app
+
+      - name: Verify Gradle Files
         run: |
-          export PATH="$PATH:$HOME/flutter/bin"
-          
-          # 1. Нусхаи эҳтиётии коди шуморо мегирем
-          mkdir temp_backup
-          cp -r lib temp_backup/ || echo "No lib folder"
-          cp pubspec.yaml temp_backup/ || echo "No pubspec file"
+          # Санҷиш мекунем, ки оё файлҳои асосӣ сохта шуданд
+          if [ -f "android/build.gradle" ] && [ -f "android/gradlew" ]; then
+            echo "✅ Android project created successfully!"
+          else
+            echo "❌ Failed to create Android project"
+            exit 1
+          fi
 
-          # 2. ҲАМАИ ПАПКАҲОРО ТОЗА МЕКУНЕМ (android, ios, web, test ва ғайра)
-          rm -rf android ios web test windows linux macos .metadata .google_settings
-
-          # 3. Аз нав сохтани лоиҳаи тоза
-          flutter create . --overwrite --project-name=my_app
-
-          # 4. Коди шуморо ба ҷояш бармегардонем
-          rm -rf lib
-          cp -r temp_backup/lib . || mkdir lib
-          cp temp_backup/pubspec.yaml . || echo "Using default pubspec"
-          
-          # Тафтиш мекунем, ки gradlew сохта шуд ё не
-          ls -la android/
-
-      - name: Push Clean Project to GitHub
+      - name: Push Changes to GitHub
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
           
-          # Тоза кардани индекс ва иловаи файлҳои нав
           git add .
-          git commit -m "Full Reset: Clean Flutter project structure created" || echo "No changes"
+          git commit -m "FIXED: Recreated Android folder with correct Gradle structure" || echo "No changes"
           git push origin main --force
