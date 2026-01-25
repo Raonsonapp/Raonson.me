@@ -1,56 +1,53 @@
-name: Build APK Directly
-on: [workflow_dispatch] # Танҳо бо тугма иҷро мешавад
+name: Force Build APK
+on: [workflow_dispatch]
 
 jobs:
-  build-apk:
+  build-clean:
     runs-on: ubuntu-latest
     steps:
-      # 1. Гирифтани код
-      - name: Checkout code
+      # 1. Гирифтани коди шумо
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Насби Java 17 (Барои Android build ҳатмӣ аст)
-      - name: Set up Java
+      # 2. Насби Java (Барои Android шарт аст)
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      # 3. Насби Flutter (Stable)
-      - name: Set up Flutter
+      # 3. Насби Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      # 4. ТАЪМИРИ ПУРРА (Пеш аз build)
-      # Мо папкаи android-ро дар ҳамин ҷо месозем, то мутмаин бошем, ки он кор мекунад
-      - name: Re-generate Android Folder
+      # 4. СОХТАНИ МУҲИТИ ТОЗА (Қисми асосӣ)
+      - name: Create Clean Environment & Build
         run: |
-          # Нусхаи ehtiyoтии lib ва pubspec
-          mkdir temp_backup
-          cp -r lib temp_backup/
-          cp pubspec.yaml temp_backup/
+          # Як папкаи муваққатӣ месозем
+          mkdir temp_build
+          cd temp_build
 
-          # Тоза кардани файлҳои кӯҳна
-          rm -rf android ios web macos windows linux
-          
-          # Сохтани лоиҳаи нав
-          flutter create . --overwrite --org com.raonson --project-name my_app
-          
-          # Барқарор кардани коди шумо
-          rm -rf lib pubspec.yaml
-          cp -r temp_backup/lib .
-          cp temp_backup/pubspec.yaml .
+          # Лоиҳаи тозаи Flutter месозем (Инҷо ҳатман Android сохта мешавад)
+          flutter create . --org com.raonson --project-name my_app
 
-      # 5. Сохтани APK
-      - name: Build APK
-        run: |
+          # Акнун коди шуморо аз папкаи асосӣ ба инҷо меорем
+          # Эзоҳ: Мо ../ истифода мебарем, то аз temp_build баромада файлҳои шуморо гирем
+          rm -rf lib/*
+          cp -r ../lib/* lib/
+          cp ../pubspec.yaml .
+          
+          # Насби китобхонаҳо
+          flutter pub get
+
+          # Сохтани APK
           flutter build apk --release --no-tree-shake-icons
 
-      # 6. Боргузории APK (Барои скачат кардан)
+      # 5. Боргузории APK (Барои скачат)
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: my-app-release
+          path: temp_build/build/app/outputs/flutter-apk/app-release.apk
