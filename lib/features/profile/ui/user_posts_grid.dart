@@ -6,16 +6,16 @@ class UserPostsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
-      padding: EdgeInsets.zero,
-      shrinkWrap: true,
+      padding: const EdgeInsets.all(2),
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 21,
+      shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        crossAxisSpacing: 2,
         mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
       ),
-      itemBuilder: (_, index) {
+      itemCount: 18,
+      itemBuilder: (context, index) {
         return Image.network(
           'https://picsum.photos/300?random=$index',
           fit: BoxFit.cover,
