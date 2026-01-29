@@ -41,3 +41,53 @@ class AuthRepository {
     }
   }
 }
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'user_model.dart';
+
+extension RegisterExtension on AuthRepository {
+  /// 📝 Register new user
+  Future<User?> register({
+    required String email,
+    required String password,
+    required String username,
+  }) async {
+    try {
+      final credential =
+          await FirebaseService.auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+
+      final user = credential.user;
+      if (user == null) return null;
+
+      final userModel = UserModel(
+        uid: user.uid,
+        email: email,
+        username: username,
+      );
+
+      await FirebaseService.firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(userModel.toMap());
+
+      return user;
+    } on FirebaseAuthException catch (e) {
+      throw _mapRegisterError(e);
+    }
+  }
+
+  Exception _mapRegisterError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return Exception('Email already in use');
+      case 'weak-password':
+        return Exception('Weak password');
+      case 'invalid-email':
+        return Exception('Invalid email');
+      default:
+        return Exception(e.message ?? 'Register error');
+    }
+  }
+}
