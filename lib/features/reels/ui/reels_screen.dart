@@ -7,24 +7,23 @@ class ReelsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reels = [
-      ReelModel(
-        videoUrl:
-            'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-        userName: 'raonson',
-        caption: '🔥 Raonson Reels',
-        avatar: 'https://i.pravatar.cc/150?img=5',
-        likes: 1200,
-        comments: 87,
+    final reels = List.generate(
+      6,
+      (i) => ReelModel(
+        videoUrl: 'video_$i.mp4',
+        userName: 'reel_user_$i',
+        caption: '🔥 Reel caption number $i',
       ),
-    ];
+    );
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: PageView.builder(
         scrollDirection: Axis.vertical,
         itemCount: reels.length,
-        itemBuilder: (_, i) => ReelPlayer(reel: reels[i]),
+        itemBuilder: (context, index) {
+          return ReelPlayer(reel: reels[index]);
+        },
       ),
     );
   }
