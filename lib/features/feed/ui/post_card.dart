@@ -1,56 +1,93 @@
 import 'package:flutter/material.dart';
-import '../data/post_model.dart';
-import 'action_bar.dart';
 
-class PostCard extends StatelessWidget {
-  final PostModel post;
+class PostCard extends StatefulWidget {
+  const PostCard({super.key});
 
-  const PostCard({super.key, required this.post});
+  @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  bool liked = false;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header
         ListTile(
-          leading: CircleAvatar(
-            backgroundImage: NetworkImage(post.userAvatar),
+          leading: const CircleAvatar(
+            backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
           ),
-          title: Text(
-            post.username,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          title: const Text(
+            'username',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
           trailing: const Icon(Icons.more_vert),
         ),
-        Image.network(
-          post.imageUrl,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-        ActionBar(isLiked: post.isLiked),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            '${post.likes} likes',
-            style: const TextStyle(fontWeight: FontWeight.bold),
+
+        // Image
+        GestureDetector(
+          onDoubleTap: () => setState(() => liked = true),
+          child: Image.network(
+            'https://picsum.photos/500/500',
+            fit: BoxFit.cover,
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.black),
+
+        // Actions
+        Row(
+          children: [
+            IconButton(
+              icon: Icon(
+                liked ? Icons.favorite : Icons.favorite_border,
+                color: liked ? Colors.red : Colors.black,
+              ),
+              onPressed: () => setState(() => liked = !liked),
+            ),
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: () {},
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.bookmark_border),
+              onPressed: () {},
+            ),
+          ],
+        ),
+
+        // Likes
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            '1,234 likes',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+
+        // Caption
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Text.rich(
+            TextSpan(
               children: [
                 TextSpan(
-                  text: post.username,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  text: 'username ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(text: ' ${post.caption}'),
+                TextSpan(text: 'This is a demo post caption...'),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
+
+        const SizedBox(height: 12),
       ],
     );
   }
