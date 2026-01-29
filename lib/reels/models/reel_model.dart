@@ -1,15 +1,15 @@
 class ReelModel {
-  final String id;
+  final String username;
+  final String caption;
   final String videoUrl;
-  final String author;
+  final String avatarUrl;
   final int likes;
-  final int comments;
 
   ReelModel({
-    required this.id,
+    required this.username,
+    required this.caption,
     required this.videoUrl,
-    required this.author,
-    this.likes = 0,
-    this.comments = 0,
+    required this.avatarUrl,
+    required this.likes,
   });
 }
