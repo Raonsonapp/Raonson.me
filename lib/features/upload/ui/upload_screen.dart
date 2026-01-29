@@ -11,12 +11,31 @@ class UploadScreen extends StatelessWidget {
         title: const Text('New post'),
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MediaPickerScreen(),
+                ),
+              );
+            },
             child: const Text('Next'),
-          )
+          ),
         ],
       ),
-      body: const MediaPicker(),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.add_box_outlined, size: 80),
+            SizedBox(height: 16),
+            Text(
+              'Create a new post',
+              style: TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
