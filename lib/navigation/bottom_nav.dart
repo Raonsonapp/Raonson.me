@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../features/feed/ui/feed_screen.dart';
 import '../features/search/ui/search_screen.dart';
-import '../features/reels/ui/reels_screen.dart';
 import '../features/upload/ui/upload_screen.dart';
+import '../features/reels/ui/reels_screen.dart';
 import '../features/profile/ui/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -13,54 +13,60 @@ class BottomNav extends StatefulWidget {
   State<BottomNav> createState() => _BottomNavState();
 }
 
-class _BottomNavState extends State<BottomNav>
-    with SingleTickerProviderStateMixin {
+class _BottomNavState extends State<BottomNav> {
   int _index = 0;
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 250));
-
-  final List<Widget> _pages = const [
+  final List<Widget> _screens = const [
     FeedScreen(),
     SearchScreen(),
-    ReelsScreen(),
     UploadScreen(),
+    ReelsScreen(),
     ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_index],
+      body: IndexedStack(
+        index: _index,
+        children: _screens,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
+        onTap: (i) => setState(() => _index = i),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.black,
-        unselectedItemColor: Colors.grey,
-        onTap: (i) {
-          setState(() => _index = i);
-          _controller.forward(from: 0);
-        },
-        items: [
-          _item(Icons.home_filled, 0),
-          _item(Icons.search, 1),
-          _item(Icons.video_library, 2),
-          _item(Icons.add_box_outlined, 3),
-          _item(Icons.person, 4),
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_outlined, size: 28),
+            activeIcon: Icon(Icons.add_box, size: 28),
+            label: 'Upload',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.video_library_outlined),
+            activeIcon: Icon(Icons.video_library),
+            label: 'Reels',
+          ),
+          BottomNavigationBarItem(
+            icon: CircleAvatar(
+              radius: 12,
+              backgroundImage: NetworkImage(
+                'https://picsum.photos/100',
+              ),
+            ),
+            label: 'Profile',
+          ),
         ],
-      ),
-    );
-  }
-
-  BottomNavigationBarItem _item(IconData icon, int i) {
-    final active = _index == i;
-    return BottomNavigationBarItem(
-      label: '',
-      icon: ScaleTransition(
-        scale: Tween<double>(begin: 1, end: 1.2).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-        ),
-        child: Icon(icon, size: active ? 28 : 24),
       ),
     );
   }
