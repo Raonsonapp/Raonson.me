@@ -1,54 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import '../data/reel_model.dart';
+import 'reel_actions.dart';
 
 class ReelPlayer extends StatefulWidget {
-  final String url;
-  const ReelPlayer({super.key, required this.url});
+  final ReelModel reel;
+  const ReelPlayer({super.key, required this.reel});
 
   @override
   State<ReelPlayer> createState() => _ReelPlayerState();
 }
 
 class _ReelPlayerState extends State<ReelPlayer> {
-  late VideoPlayerController _controller;
+  late VideoPlayerController controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.url)
+    controller = VideoPlayerController.network(widget.reel.videoUrl)
       ..initialize().then((_) {
         setState(() {});
-        _controller.play();
-        _controller.setLooping(true);
+        controller.play();
+        controller.setLooping(true);
       });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _controller.value.isInitialized
-        ? GestureDetector(
-            onTap: () {
-              _controller.value.isPlaying
-                  ? _controller.pause()
-                  : _controller.play();
-            },
-            child: SizedBox.expand(
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: _controller.value.size.width,
-                  height: _controller.value.size.height,
-                  child: VideoPlayer(_controller),
-                ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: controller.value.isInitialized
+              ? VideoPlayer(controller)
+              : const Center(child: CircularProgressIndicator()),
+        ),
+        Positioned(
+          right: 12,
+          bottom: 80,
+          child: ReelActions(reel: widget.reel),
+        ),
+        Positioned(
+          left: 12,
+          bottom: 40,
+          right: 80,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 16,
+                    backgroundImage:
+                        NetworkImage(widget.reel.avatar),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    widget.reel.userName,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-            ),
-          )
-        : const Center(child: CircularProgressIndicator());
+              const SizedBox(height: 8),
+              Text(
+                widget.reel.caption,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
