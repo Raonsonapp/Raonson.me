@@ -9,9 +9,9 @@ class ReelsScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: PageView.builder(
         scrollDirection: Axis.vertical,
-        itemCount: 6,
+        itemCount: 5,
         itemBuilder: (context, index) {
-          return _ReelItem(index: index);
+          return const _ReelItem();
         },
       ),
     );
@@ -21,9 +21,7 @@ class ReelsScreen extends StatelessWidget {
 // ================= SINGLE REEL =================
 
 class _ReelItem extends StatelessWidget {
-  final int index;
-
-  const _ReelItem({required this.index});
+  const _ReelItem();
 
   @override
   Widget build(BuildContext context) {
@@ -33,11 +31,8 @@ class _ReelItem extends StatelessWidget {
         Container(
           color: Colors.black,
           child: const Center(
-            child: Icon(
-              Icons.play_circle_fill,
-              color: Colors.white,
-              size: 80,
-            ),
+            child: Icon(Icons.play_circle_outline,
+                size: 80, color: Colors.white),
           ),
         ),
 
@@ -46,14 +41,16 @@ class _ReelItem extends StatelessWidget {
           right: 12,
           bottom: 120,
           child: Column(
-            children: [
-              _ActionButton(icon: Icons.favorite, label: '12.4K'),
-              _ActionButton(icon: Icons.comment, label: '322'),
+            children: const [
+              _ActionButton(icon: Icons.favorite_border, label: '12.3K'),
+              SizedBox(height: 16),
+              _ActionButton(icon: Icons.comment, label: '321'),
+              SizedBox(height: 16),
               _ActionButton(icon: Icons.send, label: 'Share'),
-              const SizedBox(height: 10),
-              const CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.white,
+              SizedBox(height: 16),
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey,
                 child: Icon(Icons.person),
               ),
             ],
@@ -63,36 +60,9 @@ class _ReelItem extends StatelessWidget {
         // BOTTOM INFO
         Positioned(
           left: 12,
-          bottom: 40,
+          bottom: 24,
           right: 80,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '@user$index',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'This is a demo reel on Raonson 🔥🔥',
-                style: TextStyle(color: Colors.white),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: const [
-                  Icon(Icons.music_note, color: Colors.white, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    'Original audio',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          child: const _ReelInfo(),
         ),
       ],
     );
@@ -105,25 +75,53 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-  });
+  const _ActionButton({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        children: [
-          Icon(icon, color: Colors.white, size: 30),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
-        ],
-      ),
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 28),
+        const SizedBox(height: 4),
+        Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 12)),
+      ],
+    );
+  }
+}
+
+// ================= REEL INFO =================
+
+class _ReelInfo extends StatelessWidget {
+  const _ReelInfo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text(
+          '@raonson',
+          style: TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 6),
+        Text(
+          'This is a sample reel caption 🚀🔥',
+          style: TextStyle(color: Colors.white),
+        ),
+        SizedBox(height: 6),
+        Row(
+          children: [
+            Icon(Icons.music_note, color: Colors.white, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'Original Audio',
+              style: TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
