@@ -1,13 +1,11 @@
 class StoryModel {
-  final String id;
-  final String username;
+  final String userName;
   final String avatarUrl;
-  final bool isViewed;
+  final List<String> mediaUrls;
 
   StoryModel({
-    required this.id,
-    required this.username,
+    required this.userName,
     required this.avatarUrl,
-    this.isViewed = false,
+    required this.mediaUrls,
   });
 }
