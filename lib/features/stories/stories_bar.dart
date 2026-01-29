@@ -1,65 +1,50 @@
 import 'package:flutter/material.dart';
-import 'models/story_model.dart';
 import 'story_viewer.dart';
 
 class StoriesBar extends StatelessWidget {
-  StoriesBar({super.key});
-
-  final List<StoryModel> stories = List.generate(
-    10,
-    (i) => StoryModel(
-      username: 'user$i',
-      imageUrl: '',
-      viewed: i % 3 == 0,
-    ),
-  );
+  const StoriesBar({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 110,
+      height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: stories.length,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: 10,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         itemBuilder: (context, index) {
-          final story = stories[index];
           return GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => StoryViewer(story: story),
+                  builder: (_) => const StoryViewer(),
                 ),
               );
             },
             child: Padding(
-              padding: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(3),
+                    width: 68,
+                    height: 68,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: story.viewed
-                          ? null
-                          : const LinearGradient(
-                              colors: [Colors.purple, Colors.red, Colors.orange],
-                            ),
-                      border: story.viewed
-                          ? Border.all(color: Colors.grey)
-                          : null,
+                      gradient: const LinearGradient(
+                        colors: [Colors.purple, Colors.red, Colors.orange],
+                      ),
                     ),
+                    padding: const EdgeInsets.all(3),
                     child: const CircleAvatar(
-                      radius: 32,
                       backgroundColor: Colors.grey,
-                      child: Icon(Icons.person, size: 30),
+                      child: Icon(Icons.person),
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    story.username,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  const Text(
+                    'user',
+                    style: TextStyle(fontSize: 12),
                   ),
                 ],
               ),
