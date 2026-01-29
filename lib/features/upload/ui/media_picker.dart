@@ -1,19 +1,43 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
-class MediaPicker {
-  static final _picker = ImagePicker();
+class MediaPicker extends StatelessWidget {
+  const MediaPicker({super.key});
 
-  static Future<File?> pickFromGallery() async {
-    final XFile? file =
-        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-    return file != null ? File(file.path) : null;
-  }
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Preview area
+        AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            color: Colors.black12,
+            child: const Center(
+              child: Icon(Icons.photo, size: 80),
+            ),
+          ),
+        ),
 
-  static Future<File?> pickFromCamera() async {
-    final XFile? file =
-        await _picker.pickImage(source: ImageSource.camera, imageQuality: 85);
-    return file != null ? File(file.path) : null;
+        const SizedBox(height: 8),
+
+        // Fake gallery grid (UI only)
+        Expanded(
+          child: GridView.builder(
+            itemCount: 30,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
+            ),
+            itemBuilder: (_, i) {
+              return Image.network(
+                'https://picsum.photos/300?random=$i',
+                fit: BoxFit.cover,
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
