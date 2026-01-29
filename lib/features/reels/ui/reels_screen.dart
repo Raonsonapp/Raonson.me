@@ -1,33 +1,47 @@
 import 'package:flutter/material.dart';
-import '../data/reel_model.dart';
-import 'reel_item.dart';
+import 'reel_player.dart';
+import 'reel_actions.dart';
 
 class ReelsScreen extends StatelessWidget {
   const ReelsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final reels = List.generate(
-      6,
-      (i) => ReelModel(
-        id: '$i',
-        username: 'reel_user$i',
-        userAvatar: 'https://i.pravatar.cc/150?img=${i + 20}',
-        mediaUrl: 'https://picsum.photos/600/1000?random=$i',
-        caption: '🔥 Reel caption number $i',
-        likes: 500 + i * 13,
-      ),
-    );
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: reels.length,
-        itemBuilder: (_, index) {
-          return ReelItem(reel: reels[index]);
-        },
-      ),
+    return PageView.builder(
+      scrollDirection: Axis.vertical,
+      itemCount: 5,
+      itemBuilder: (context, index) {
+        return Stack(
+          children: [
+            ReelPlayer(
+              url: 'https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
+            ),
+            Positioned(
+              right: 12,
+              bottom: 80,
+              child: ReelActions(index: index),
+            ),
+            Positioned(
+              left: 12,
+              bottom: 20,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    '@raonson_user',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    '🔥 Reels demo like Instagram',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
