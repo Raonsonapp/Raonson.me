@@ -1,20 +1,31 @@
 import 'package:flutter/material.dart';
-import '../data/story_model.dart';
 import 'story_viewer.dart';
+import '../data/story_model.dart';
 
 class StoriesBar extends StatelessWidget {
-  final List<StoryModel> stories;
-  const StoriesBar({super.key, required this.stories});
+  const StoriesBar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final stories = List.generate(
+      10,
+      (i) => StoryModel(
+        userName: 'user_$i',
+        avatarUrl: 'https://i.pravatar.cc/150?img=$i',
+        mediaUrls: [
+          'https://picsum.photos/600/900?random=$i',
+          'https://picsum.photos/600/900?random=${i + 20}',
+        ],
+      ),
+    );
+
     return SizedBox(
-      height: 110,
+      height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: stories.length,
-        itemBuilder: (context, index) {
-          final story = stories[index];
+        itemBuilder: (_, i) {
+          final story = stories[i];
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -29,10 +40,10 @@ class StoriesBar extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [Colors.pink, Colors.orange],
                       ),
                     ),
@@ -41,11 +52,10 @@ class StoriesBar extends StatelessWidget {
                       backgroundImage: NetworkImage(story.avatarUrl),
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     story.userName,
                     style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
