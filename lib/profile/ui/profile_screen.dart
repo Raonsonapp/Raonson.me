@@ -1,68 +1,56 @@
 import 'package:flutter/material.dart';
-import '../models/profile_model.dart';
 
 class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
-
-  final ProfileModel profile = ProfileModel(
-    username: 'raonson_user',
-    name: 'Raonson Official',
-    avatarUrl: 'https://i.pravatar.cc/300',
-    bio: '🚀 Raonson App\n🎬 Anime • Reels • AI\n🇹🇯 Made in Tajikistan',
-    posts: 24,
-    followers: 12800,
-    following: 120,
-    postImages: List.generate(
-      24,
-      (i) => 'https://picsum.photos/300/300?random=$i',
-    ),
-  );
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(profile.username),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: const [
-          Icon(Icons.menu),
-          SizedBox(width: 12),
+        title: const Text('raonson'),
+        centerTitle: false,
+        actions: [
+          IconButton(onPressed: () {}, icon: const Icon(Icons.menu)),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _header(),
-            _bio(),
-            _buttons(),
-            const Divider(),
-            _postsGrid(),
-          ],
-        ),
+      body: ListView(
+        children: [
+          _topProfile(),
+          const SizedBox(height: 12),
+          _bio(),
+          const SizedBox(height: 12),
+          _actionButtons(),
+          const SizedBox(height: 16),
+          _highlights(),
+          const Divider(),
+          _tabs(),
+          _postsGrid(),
+        ],
       ),
     );
   }
 
-  Widget _header() {
+  // 👤 Avatar + Stats
+  Widget _topProfile() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          CircleAvatar(
+          const CircleAvatar(
             radius: 40,
-            backgroundImage: NetworkImage(profile.avatarUrl),
+            backgroundImage: NetworkImage(
+              'https://i.pravatar.cc/150?img=3',
+            ),
           ),
           const SizedBox(width: 24),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _stat(profile.posts, 'Posts'),
-                _stat(profile.followers, 'Followers'),
-                _stat(profile.following, 'Following'),
+              children: const [
+                _StatItem(value: '24', label: 'Posts'),
+                _StatItem(value: '3.2K', label: 'Followers'),
+                _StatItem(value: '180', label: 'Following'),
               ],
             ),
           ),
@@ -71,39 +59,30 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _stat(int value, String label) {
-    return Column(
-      children: [
-        Text(
-          value.toString(),
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        Text(label),
-      ],
-    );
-  }
-
+  // 📝 Bio
   Widget _bio() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            profile.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            'Raonson Official',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 4),
-          Text(profile.bio),
+          SizedBox(height: 4),
+          Text('🔥 Social + AI Platform'),
+          Text('🎬 Reels • AI • NextToon'),
+          Text('🌍 Made in Tajikistan'),
         ],
       ),
     );
   }
 
-  Widget _buttons() {
+  // ✏️ Buttons
+  Widget _actionButtons() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
@@ -113,31 +92,101 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Icon(Icons.person_add),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {},
+              child: const Text('Share Profile'),
+            ),
           ),
         ],
       ),
     );
   }
 
+  // ⭐ Highlights
+  Widget _highlights() {
+    return SizedBox(
+      height: 90,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Column(
+              children: [
+                const CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.black12,
+                  child: Icon(Icons.add),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  index == 0 ? 'New' : 'Story',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // 📑 Tabs
+  Widget _tabs() {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Icon(Icons.grid_on),
+        Icon(Icons.video_library_outlined),
+        Icon(Icons.person_pin_outlined),
+      ],
+    );
+  }
+
+  // 🖼 Posts Grid
   Widget _postsGrid() {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: profile.postImages.length,
+      itemCount: 12,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 2,
         mainAxisSpacing: 2,
       ),
       itemBuilder: (context, index) {
-        return Image.network(
-          profile.postImages[index],
-          fit: BoxFit.cover,
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Icon(Icons.image),
         );
       },
+    );
+  }
+}
+
+// 📊 Stat widget
+class _StatItem extends StatelessWidget {
+  final String value;
+  final String label;
+
+  const _StatItem({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        Text(label),
+      ],
     );
   }
 }
