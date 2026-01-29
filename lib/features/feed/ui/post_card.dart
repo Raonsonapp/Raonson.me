@@ -1,42 +1,52 @@
 import 'package:flutter/material.dart';
+import '../data/post_model.dart';
+import 'comment_sheet.dart';
 
 class PostCard extends StatefulWidget {
-  const PostCard({super.key});
+  final PostModel post;
+  const PostCard({super.key, required this.post});
 
   @override
   State<PostCard> createState() => _PostCardState();
 }
 
 class _PostCardState extends State<PostCard> {
-  bool liked = false;
+  late bool liked;
+  late int likes;
+
+  @override
+  void initState() {
+    super.initState();
+    liked = widget.post.isLiked;
+    likes = widget.post.likes;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         ListTile(
-          leading: const CircleAvatar(
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(widget.post.userAvatar),
           ),
-          title: const Text(
-            'username',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          title: Text(widget.post.userName),
           trailing: const Icon(Icons.more_vert),
         ),
-
-        // Image
         GestureDetector(
-          onDoubleTap: () => setState(() => liked = true),
+          onDoubleTap: () {
+            setState(() {
+              liked = true;
+              likes++;
+            });
+          },
           child: Image.network(
-            'https://picsum.photos/500/500',
+            widget.post.imageUrl,
             fit: BoxFit.cover,
+            width: double.infinity,
+            height: 350,
           ),
         ),
-
-        // Actions
         Row(
           children: [
             IconButton(
@@ -44,49 +54,56 @@ class _PostCardState extends State<PostCard> {
                 liked ? Icons.favorite : Icons.favorite_border,
                 color: liked ? Colors.red : Colors.black,
               ),
-              onPressed: () => setState(() => liked = !liked),
+              onPressed: () {
+                setState(() {
+                  liked = !liked;
+                  likes += liked ? 1 : -1;
+                });
+              },
             ),
             IconButton(
               icon: const Icon(Icons.chat_bubble_outline),
-              onPressed: () {},
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => const CommentSheet(),
+                );
+              },
             ),
             IconButton(
               icon: const Icon(Icons.send),
               onPressed: () {},
             ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.bookmark_border),
-              onPressed: () {},
-            ),
           ],
         ),
-
-        // Likes
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            '1,234 likes',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text('$likes likes',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
-
-        // Caption
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Text.rich(
-            TextSpan(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: RichText(
+            text: TextSpan(
+              style: const TextStyle(color: Colors.black),
               children: [
                 TextSpan(
-                  text: 'username ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  text: widget.post.userName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(text: 'This is a demo post caption...'),
+                TextSpan(text: ' ${widget.post.caption}'),
               ],
             ),
           ),
         ),
-
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Text(
+            'View all ${widget.post.comments} comments',
+            style: const TextStyle(color: Colors.grey),
+          ),
+        ),
         const SizedBox(height: 12),
       ],
     );
