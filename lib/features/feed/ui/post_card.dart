@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../data/post_model.dart';
-import 'comment_sheet.dart';
 
 class PostCard extends StatefulWidget {
   final PostModel post;
@@ -10,15 +9,32 @@ class PostCard extends StatefulWidget {
   State<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends State<PostCard> {
-  late bool liked;
-  late int likes;
+class _PostCardState extends State<PostCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _likeAnim;
 
   @override
   void initState() {
     super.initState();
-    liked = widget.post.isLiked;
-    likes = widget.post.likes;
+    _likeAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+      lowerBound: 0.8,
+      upperBound: 1.2,
+    );
+  }
+
+  void toggleLike() {
+    setState(() {
+      widget.post.isLiked = !widget.post.isLiked;
+    });
+    _likeAnim.forward(from: 0.8);
+  }
+
+  @override
+  void dispose() {
+    _likeAnim.dispose();
+    super.dispose();
   }
 
   @override
@@ -26,64 +42,69 @@ class _PostCardState extends State<PostCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Header
         ListTile(
           leading: CircleAvatar(
             backgroundImage: NetworkImage(widget.post.userAvatar),
           ),
-          title: Text(widget.post.userName),
+          title: Text(widget.post.userName,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           trailing: const Icon(Icons.more_vert),
         ),
+
+        // Image
         GestureDetector(
-          onDoubleTap: () {
-            setState(() {
-              liked = true;
-              likes++;
-            });
-          },
-          child: Image.network(
-            widget.post.imageUrl,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: 350,
+          onDoubleTap: toggleLike,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.network(widget.post.imageUrl,
+                  width: double.infinity, fit: BoxFit.cover),
+              ScaleTransition(
+                scale: _likeAnim,
+                child: Icon(
+                  Icons.favorite,
+                  size: 100,
+                  color: widget.post.isLiked
+                      ? Colors.white
+                      : Colors.transparent,
+                ),
+              ),
+            ],
           ),
         ),
+
+        // Actions
         Row(
           children: [
             IconButton(
               icon: Icon(
-                liked ? Icons.favorite : Icons.favorite_border,
-                color: liked ? Colors.red : Colors.black,
+                widget.post.isLiked
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                color: widget.post.isLiked ? Colors.red : null,
               ),
-              onPressed: () {
-                setState(() {
-                  liked = !liked;
-                  likes += liked ? 1 : -1;
-                });
-              },
+              onPressed: toggleLike,
             ),
             IconButton(
-              icon: const Icon(Icons.chat_bubble_outline),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => const CommentSheet(),
-                );
-              },
+              icon: const Icon(Icons.comment_outlined),
+              onPressed: () {},
             ),
             IconButton(
               icon: const Icon(Icons.send),
               onPressed: () {},
             ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.bookmark_border),
+              onPressed: () {},
+            ),
           ],
         ),
+
+        // Caption
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text('$likes likes',
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           child: RichText(
             text: TextSpan(
               style: const TextStyle(color: Colors.black),
@@ -92,18 +113,13 @@ class _PostCardState extends State<PostCard> {
                   text: widget.post.userName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(text: ' ${widget.post.caption}'),
+                const TextSpan(text: '  '),
+                TextSpan(text: widget.post.caption),
               ],
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          child: Text(
-            'View all ${widget.post.comments} comments',
-            style: const TextStyle(color: Colors.grey),
-          ),
-        ),
+
         const SizedBox(height: 12),
       ],
     );
