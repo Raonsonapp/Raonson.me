@@ -8,107 +8,122 @@ class UploadScreen extends StatefulWidget {
 }
 
 class _UploadScreenState extends State<UploadScreen> {
-  bool isReel = false;
+  int selectedTab = 0;
+
+  final tabs = ['Post', 'Reel', 'Story'];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create'),
+        title: const Text('New post'),
         actions: [
           TextButton(
             onPressed: () {},
             child: const Text(
               'Share',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.blue, fontSize: 16),
             ),
           ),
         ],
       ),
       body: Column(
         children: [
-          _preview(),
-          _controls(),
-          _switchType(),
+          _mediaPreview(),
+          _tabs(),
           _caption(),
+          _options(),
         ],
       ),
     );
   }
 
-  // 🔲 Preview (image / video placeholder)
-  Widget _preview() {
+  // 🖼 Media Preview
+  Widget _mediaPreview() {
     return Container(
-      height: isReel ? 420 : 300,
+      height: 300,
       width: double.infinity,
       color: Colors.black12,
       child: const Center(
-        child: Icon(Icons.play_arrow, size: 64),
-      ),
-    );
-  }
-
-  // 🎛 Gallery / Music / Effects
-  Widget _controls() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _controlItem(Icons.photo_library, 'Gallery'),
-          _controlItem(Icons.music_note, 'Music'),
-          _controlItem(Icons.auto_awesome, 'Effects'),
-          _controlItem(Icons.crop, 'Crop'),
-        ],
-      ),
-    );
-  }
-
-  Widget _controlItem(IconData icon, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 28),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
-      ],
-    );
-  }
-
-  // 🔁 Post / Reel switch
-  Widget _switchType() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ChoiceChip(
-            label: const Text('Post'),
-            selected: !isReel,
-            onSelected: (_) => setState(() => isReel = false),
-          ),
-          const SizedBox(width: 12),
-          ChoiceChip(
-            label: const Text('Reel'),
-            selected: isReel,
-            onSelected: (_) => setState(() => isReel = true),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✍ Caption
-  Widget _caption() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        maxLines: 2,
-        decoration: const InputDecoration(
-          hintText: 'Write a caption...',
-          border: OutlineInputBorder(),
+        child: Icon(
+          Icons.image,
+          size: 80,
+          color: Colors.black38,
         ),
       ),
+    );
+  }
+
+  // 🔘 Post / Reel / Story Tabs
+  Widget _tabs() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: List.generate(tabs.length, (index) {
+          final isActive = selectedTab == index;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                selectedTab = index;
+              });
+            },
+            child: Column(
+              children: [
+                Text(
+                  tabs[index],
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight:
+                        isActive ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                if (isActive)
+                  Container(
+                    height: 2,
+                    width: 40,
+                    color: Colors.black,
+                  ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ✏️ Caption
+  Widget _caption() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        maxLines: 3,
+        decoration: const InputDecoration(
+          hintText: 'Write a caption...',
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+
+  // ⚙️ Options
+  Widget _options() {
+    return Column(
+      children: const [
+        ListTile(
+          leading: Icon(Icons.person_add_alt),
+          title: Text('Tag people'),
+        ),
+        ListTile(
+          leading: Icon(Icons.location_on_outlined),
+          title: Text('Add location'),
+        ),
+        ListTile(
+          leading: Icon(Icons.music_note),
+          title: Text('Add music'),
+        ),
+      ],
     );
   }
 }
