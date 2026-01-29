@@ -10,7 +10,7 @@ class VerifiedBadge extends StatelessWidget {
     return Icon(
       Icons.verified,
       size: size,
-      color: Colors.blue,
+      color: Colors.green,
     );
   }
 }
