@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app/app_router.dart';
 
 void main() {
   runApp(const RaonsonApp());
@@ -10,11 +9,16 @@ class RaonsonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Raonson',
-      initialRoute: AppRoutes.splash,
-      onGenerateRoute: AppRouter.onGenerateRoute,
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Text(
+            'Raonson App',
+            style: TextStyle(fontSize: 24),
+          ),
+        ),
+      ),
     );
   }
 }
