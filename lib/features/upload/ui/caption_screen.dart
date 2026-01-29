@@ -1,43 +1,41 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 
 class CaptionScreen extends StatelessWidget {
-  final File file;
-
-  const CaptionScreen({super.key, required this.file});
+  const CaptionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New post'),
+        title: const Text('Caption'),
         actions: [
           TextButton(
-            onPressed: () {
-              // TODO: upload to backend / firebase
-              Navigator.pop(context);
-            },
+            onPressed: () {},
             child: const Text('Share'),
           )
         ],
       ),
-      body: Column(
-        children: [
-          Image.file(file, height: 260, width: double.infinity, fit: BoxFit.cover),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: controller,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'Write a caption...',
-                border: InputBorder.none,
-              ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const CircleAvatar(radius: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    maxLines: 4,
+                    decoration: const InputDecoration(
+                      hintText: 'Write a caption...',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
