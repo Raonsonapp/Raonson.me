@@ -8,125 +8,114 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
-  bool liked = false;
+  final PageController _controller = PageController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          _videoPlaceholder(),
-          _rightActions(),
-          _bottomInfo(),
-        ],
+      body: PageView.builder(
+        controller: _controller,
+        scrollDirection: Axis.vertical,
+        itemCount: 10,
+        itemBuilder: (context, index) {
+          return _reelItem();
+        },
       ),
     );
   }
 
-  // 🎬 Video placeholder (later real video)
-  Widget _videoPlaceholder() {
-    return Container(
-      color: Colors.black,
-      child: const Center(
-        child: Icon(
-          Icons.play_arrow,
-          size: 80,
-          color: Colors.white70,
-        ),
-      ),
-    );
-  }
-
-  // ❤️ 💬 ➤ buttons
-  Widget _rightActions() {
-    return Positioned(
-      right: 12,
-      bottom: 120,
-      child: Column(
-        children: [
-          _iconButton(
-            icon: liked ? Icons.favorite : Icons.favorite_border,
-            color: liked ? Colors.red : Colors.white,
-            label: '12.3K',
-            onTap: () => setState(() => liked = !liked),
-          ),
-          const SizedBox(height: 16),
-          _iconButton(
-            icon: Icons.chat_bubble_outline,
-            label: '432',
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-          _iconButton(
-            icon: Icons.send,
-            label: 'Share',
-            onTap: () {},
-          ),
-          const SizedBox(height: 16),
-          _iconButton(
-            icon: Icons.more_vert,
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _iconButton({
-    required IconData icon,
-    String? label,
-    Color color = Colors.white,
-    required VoidCallback onTap,
-  }) {
-    return Column(
+  Widget _reelItem() {
+    return Stack(
       children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Icon(icon, size: 32, color: color),
-        ),
-        if (label != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
+        // 🎥 Video placeholder
+        Container(
+          color: Colors.black,
+          child: const Center(
+            child: Icon(
+              Icons.play_arrow,
+              size: 80,
+              color: Colors.white38,
+            ),
           ),
-        ]
+        ),
+
+        // 🔝 Top bar
+        Positioned(
+          top: 50,
+          left: 16,
+          child: Row(
+            children: const [
+              Text(
+                'Reels',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // ❤️ Right actions
+        Positioned(
+          right: 12,
+          bottom: 120,
+          child: Column(
+            children: [
+              _action(Icons.favorite_border, '12.3K'),
+              _action(Icons.comment, '430'),
+              _action(Icons.send, 'Share'),
+              const SizedBox(height: 12),
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white,
+                child: const Icon(Icons.person),
+              ),
+            ],
+          ),
+        ),
+
+        // 📝 Bottom info
+        Positioned(
+          left: 16,
+          bottom: 40,
+          right: 80,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                '@raonson_user',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'This is a reels caption #raonson #reels',
+                style: TextStyle(color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  // 👤 Username + caption + music
-  Widget _bottomInfo() {
-    return Positioned(
-      left: 12,
-      right: 80,
-      bottom: 24,
+  Widget _action(IconData icon, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
+          Icon(icon, color: Colors.white, size: 30),
+          const SizedBox(height: 4),
           Text(
-            '@raonson_official',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 6),
-          Text(
-            'This is a Reel demo 🔥',
-            style: TextStyle(color: Colors.white),
-          ),
-          SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.music_note, color: Colors.white, size: 16),
-              SizedBox(width: 4),
-              Text(
-                'Original Audio',
-                style: TextStyle(color: Colors.white70),
-              ),
-            ],
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
         ],
       ),
