@@ -1,49 +1,68 @@
 import 'package:flutter/material.dart';
-import '../data/user_model.dart';
-import 'profile_stats.dart';
 
 class ProfileHeader extends StatelessWidget {
-  final UserModel user;
-
-  const ProfileHeader({super.key, required this.user});
+  const ProfileHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: NetworkImage(user.avatar),
+              const CircleAvatar(
+                radius: 42,
+                backgroundImage: NetworkImage(
+                  'https://i.pravatar.cc/300',
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ProfileStatItem(label: 'Posts', value: user.posts),
-                    ProfileStatItem(label: 'Followers', value: user.followers),
-                    ProfileStatItem(label: 'Following', value: user.following),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Row(
+                      children: [
+                        Text(
+                          'Raonson User',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.verified, color: Colors.blue, size: 18),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Creator • Anime • Tech\nBuilding the future 🚀',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(user.bio),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {},
-              child: const Text('Edit Profile'),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  child: const Text('Edit Profile'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  child: const Text('Share'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
