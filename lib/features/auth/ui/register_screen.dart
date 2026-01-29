@@ -1,68 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class RegisterScreen extends StatelessWidget {
-  final VoidCallback onSwitch;
-  const RegisterScreen({super.key, required this.onSwitch});
+import '../logic/auth_cubit.dart';
+import '../logic/auth_state.dart';
+import 'widgets/auth_text_field.dart';
+import 'widgets/auth_button.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  final _username = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Text(
-                'Create account',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 24),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Username',
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+      appBar: AppBar(title: const Text('Сабти ном')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            if (state is AuthError) {
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(SnackBar(content: Text(state.message)));
+            }
+          },
+          builder: (context, state) {
+            final loading = state is AuthLoading;
+            return Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  AuthTextField(
+                    controller: _username,
+                    hint: 'Username',
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Email',
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 12),
+                  AuthTextField(
+                    controller: _email,
+                    hint: 'Email',
+                    keyboardType: TextInputType.emailAddress,
                   ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                obscureText: true,
-                decoration: InputDecoration(
-                  hintText: 'Password',
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  const SizedBox(height: 12),
+                  AuthTextField(
+                    controller: _password,
+                    hint: 'Password',
+                    obscure: true,
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  AuthButton(
+                    text: 'Сабти ном',
+                    loading: loading,
+                    onTap: () {
+                      if (_formKey.currentState!.validate()) {
+                        context.read<AuthCubit>().register(
+                              email: _email.text.trim(),
+                              password: _password.text.trim(),
+                              username: _username.text.trim(),
+                            );
+                      }
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Sign Up'),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: onSwitch,
-                child: const Text('Already have an account? Log in'),
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
