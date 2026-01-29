@@ -1,47 +1,31 @@
 import 'package:flutter/material.dart';
+import '../data/reel_model.dart';
 import 'reel_player.dart';
-import 'reel_actions.dart';
 
 class ReelsScreen extends StatelessWidget {
   const ReelsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      scrollDirection: Axis.vertical,
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return Stack(
-          children: [
-            ReelPlayer(
-              url: 'https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4',
-            ),
-            Positioned(
-              right: 12,
-              bottom: 80,
-              child: ReelActions(index: index),
-            ),
-            Positioned(
-              left: 12,
-              bottom: 20,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    '@raonson_user',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    '🔥 Reels demo like Instagram',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+    final reels = [
+      ReelModel(
+        videoUrl:
+            'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+        userName: 'raonson',
+        caption: '🔥 Raonson Reels',
+        avatar: 'https://i.pravatar.cc/150?img=5',
+        likes: 1200,
+        comments: 87,
+      ),
+    ];
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: PageView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: reels.length,
+        itemBuilder: (_, i) => ReelPlayer(reel: reels[i]),
+      ),
     );
   }
 }
