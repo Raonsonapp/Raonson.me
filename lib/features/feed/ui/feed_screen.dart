@@ -1,39 +1,40 @@
 import 'package:flutter/material.dart';
-import '../data/post_model.dart';
 import 'post_card.dart';
+import '../data/post_model.dart';
+import '../../stories/ui/stories_bar.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final posts = [
-      PostModel(
-        userName: 'raonson',
-        userAvatar:
-            'https://i.pravatar.cc/150?img=3',
-        imageUrl:
-            'https://picsum.photos/600/600',
-        caption: 'Hello Raonson 🔥',
-        likes: 124,
-        comments: 12,
+    final posts = List.generate(
+      10,
+      (i) => PostModel(
+        userName: 'user_$i',
+        userAvatar: 'https://i.pravatar.cc/150?img=$i',
+        imageUrl: 'https://picsum.photos/600/600?random=$i',
+        caption: 'This is a sample post caption #$i',
       ),
-    ];
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Raonson'),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: () {},
-          ),
+        title: const Text('Raonson',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: const [
+          Icon(Icons.favorite_border),
+          SizedBox(width: 12),
+          Icon(Icons.send),
+          SizedBox(width: 12),
         ],
       ),
-      body: ListView.builder(
-        itemCount: posts.length,
-        itemBuilder: (_, i) => PostCard(post: posts[i]),
+      body: ListView(
+        children: [
+          const StoriesBar(),
+          const Divider(height: 1),
+          ...posts.map((p) => PostCard(post: p)).toList(),
+        ],
       ),
     );
   }
