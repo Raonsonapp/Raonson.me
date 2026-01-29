@@ -1,39 +1,45 @@
 import 'package:flutter/material.dart';
+import 'stories_bar.dart';
 import 'post_card.dart';
-import '../data/post_model.dart';
-import '../../stories/ui/stories_bar.dart';
 
 class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final posts = List.generate(
-      10,
-      (i) => PostModel(
-        userName: 'user_$i',
-        userAvatar: 'https://i.pravatar.cc/150?img=$i',
-        imageUrl: 'https://picsum.photos/600/600?random=$i',
-        caption: 'This is a sample post caption #$i',
-      ),
-    );
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Raonson',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: const [
-          Icon(Icons.favorite_border),
-          SizedBox(width: 12),
-          Icon(Icons.send),
-          SizedBox(width: 12),
+        title: const Text(
+          'Raonson',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.favorite_border),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: () {},
+          ),
         ],
       ),
       body: ListView(
-        children: [
-          const StoriesBar(),
-          const Divider(height: 1),
-          ...posts.map((p) => PostCard(post: p)).toList(),
+        children: const [
+          StoriesBar(),
+          Divider(height: 1),
+          PostCard(
+            username: 'ehson',
+            imageUrl: 'https://picsum.photos/500/500',
+            caption: 'Салом аз Raonson 👋',
+            likes: 128,
+          ),
+          PostCard(
+            username: 'raonson_ai',
+            imageUrl: 'https://picsum.photos/501/501',
+            caption: 'Версияи аввал 🚀',
+            likes: 342,
+          ),
         ],
       ),
     );
