@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+// Screens
+import 'screens/home_screen.dart';
+import 'screens/chatgpt_screen.dart';
+import 'screens/king_ai_screen.dart';
+import 'screens/nexttoon_screen.dart';
+
 void main() {
   runApp(const RaonsonApp());
 }
@@ -9,16 +15,24 @@ class RaonsonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Center(
-          child: Text(
-            'Raonson App',
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
+      title: 'Raonson',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.white,
       ),
+
+      // 🔥 Экран аввал
+      initialRoute: '/',
+
+      // 🔥 Роутҳо
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/chatgpt': (context) => const ChatGPTScreen(),
+        '/king-ai': (context) => const KingAIScreen(),
+        '/nexttoon': (context) => const NextToonScreen(),
+      },
     );
   }
 }
