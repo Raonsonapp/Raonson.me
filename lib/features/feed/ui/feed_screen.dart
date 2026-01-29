@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'stories_bar.dart';
+import '../data/post_model.dart';
 import 'post_card.dart';
 
 class FeedScreen extends StatelessWidget {
@@ -7,27 +7,33 @@ class FeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final posts = [
+      PostModel(
+        userName: 'raonson',
+        userAvatar:
+            'https://i.pravatar.cc/150?img=3',
+        imageUrl:
+            'https://picsum.photos/600/600',
+        caption: 'Hello Raonson 🔥',
+        likes: 124,
+        comments: 12,
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Raonson',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: const [
-          Icon(Icons.favorite_border),
-          SizedBox(width: 16),
-          Icon(Icons.send),
-          SizedBox(width: 12),
+        title: const Text('Raonson'),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: () {},
+          ),
         ],
       ),
-      body: ListView(
-        children: const [
-          StoriesBar(),
-          Divider(height: 1),
-          PostCard(),
-          PostCard(),
-          PostCard(),
-        ],
+      body: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (_, i) => PostCard(post: posts[i]),
       ),
     );
   }
