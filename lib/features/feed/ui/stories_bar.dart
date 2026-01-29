@@ -9,31 +9,22 @@ class StoriesBar extends StatelessWidget {
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: 10,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 6),
             child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Colors.pink, Colors.orange],
-                    ),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 30,
-                    backgroundImage:
-                        NetworkImage('https://i.pravatar.cc/150'),
-                  ),
+                CircleAvatar(
+                  radius: 32,
+                  backgroundImage:
+                      NetworkImage('https://picsum.photos/200?random=$index'),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'user',
-                  style: TextStyle(fontSize: 12),
+                const SizedBox(height: 6),
+                Text(
+                  'user$index',
+                  style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
