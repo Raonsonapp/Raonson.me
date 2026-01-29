@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 
 class ReelActions extends StatelessWidget {
-  final bool isLiked;
-  final int likes;
-
-  const ReelActions({
-    super.key,
-    required this.isLiked,
-    required this.likes,
-  });
+  final int index;
+  const ReelActions({super.key, required this.index});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(
-          isLiked ? Icons.favorite : Icons.favorite_border,
-          color: isLiked ? Colors.red : Colors.white,
-          size: 32,
+        _icon(Icons.favorite, '1.2K'),
+        const SizedBox(height: 20),
+        _icon(Icons.comment, '320'),
+        const SizedBox(height: 20),
+        _icon(Icons.send, ''),
+        const SizedBox(height: 20),
+        CircleAvatar(
+          radius: 18,
+          backgroundImage: NetworkImage(
+            'https://i.pravatar.cc/150?img=$index',
+          ),
         ),
-        Text('$likes', style: const TextStyle(color: Colors.white)),
-        const SizedBox(height: 16),
-        const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 28),
-        const SizedBox(height: 16),
-        const Icon(Icons.send, color: Colors.white, size: 28),
-        const SizedBox(height: 16),
-        const Icon(Icons.more_vert, color: Colors.white),
+      ],
+    );
+  }
+
+  Widget _icon(IconData icon, String text) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 32),
+        if (text.isNotEmpty)
+          Text(text, style: const TextStyle(color: Colors.white)),
       ],
     );
   }
