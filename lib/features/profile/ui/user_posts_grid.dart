@@ -14,10 +14,10 @@ class UserPostsGrid extends StatelessWidget {
         crossAxisSpacing: 2,
         mainAxisSpacing: 2,
       ),
-      itemBuilder: (_, i) {
-        return Image.network(
-          'https://picsum.photos/300?random=$i',
-          fit: BoxFit.cover,
+      itemBuilder: (context, index) {
+        return Container(
+          color: Colors.grey.shade300,
+          child: const Icon(Icons.image),
         );
       },
     );
