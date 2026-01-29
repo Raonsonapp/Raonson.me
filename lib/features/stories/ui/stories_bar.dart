@@ -1,38 +1,57 @@
 import 'package:flutter/material.dart';
 import '../data/story_model.dart';
-import 'story_avatar.dart';
+import 'story_viewer.dart';
 
 class StoriesBar extends StatelessWidget {
   final List<StoryModel> stories;
-
   const StoriesBar({super.key, required this.stories});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100,
-      child: ListView.separated(
+      height: 110,
+      child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemBuilder: (_, index) {
+        itemCount: stories.length,
+        itemBuilder: (context, index) {
           final story = stories[index];
-          return Column(
-            children: [
-              StoryAvatar(
-                imageUrl: story.avatarUrl,
-                isViewed: story.isViewed,
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => StoryViewer(story: story),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Colors.pink, Colors.orange],
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 32,
+                      backgroundImage: NetworkImage(story.avatarUrl),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    story.userName,
+                    style: const TextStyle(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                story.username,
-                style: const TextStyle(fontSize: 12),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           );
         },
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemCount: stories.length,
       ),
     );
   }
