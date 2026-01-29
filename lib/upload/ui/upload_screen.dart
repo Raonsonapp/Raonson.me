@@ -20,10 +20,7 @@ class _UploadScreenState extends State<UploadScreen> {
             onPressed: () {},
             child: const Text(
               'Share',
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -31,6 +28,7 @@ class _UploadScreenState extends State<UploadScreen> {
       body: Column(
         children: [
           _preview(),
+          _controls(),
           _switchType(),
           _caption(),
         ],
@@ -38,54 +36,77 @@ class _UploadScreenState extends State<UploadScreen> {
     );
   }
 
-  /// 📸 Preview area
+  // 🔲 Preview (image / video placeholder)
   Widget _preview() {
     return Container(
-      height: 300,
+      height: isReel ? 420 : 300,
       width: double.infinity,
-      color: Colors.grey.shade300,
+      color: Colors.black12,
       child: const Center(
-        child: Icon(Icons.add_photo_alternate, size: 80),
+        child: Icon(Icons.play_arrow, size: 64),
       ),
     );
   }
 
-  /// 🔁 Post / Reel switch
+  // 🎛 Gallery / Music / Effects
+  Widget _controls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _controlItem(Icons.photo_library, 'Gallery'),
+          _controlItem(Icons.music_note, 'Music'),
+          _controlItem(Icons.auto_awesome, 'Effects'),
+          _controlItem(Icons.crop, 'Crop'),
+        ],
+      ),
+    );
+  }
+
+  Widget _controlItem(IconData icon, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 28),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  // 🔁 Post / Reel switch
   Widget _switchType() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ChoiceChip(
             label: const Text('Post'),
             selected: !isReel,
-            onSelected: (_) {
-              setState(() => isReel = false);
-            },
+            onSelected: (_) => setState(() => isReel = false),
           ),
           const SizedBox(width: 12),
           ChoiceChip(
             label: const Text('Reel'),
             selected: isReel,
-            onSelected: (_) {
-              setState(() => isReel = true);
-            },
+            onSelected: (_) => setState(() => isReel = true),
           ),
         ],
       ),
     );
   }
 
-  /// ✍️ Caption
+  // ✍ Caption
   Widget _caption() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       child: TextField(
-        maxLines: 3,
+        maxLines: 2,
         decoration: const InputDecoration(
           hintText: 'Write a caption...',
-          border: InputBorder.none,
+          border: OutlineInputBorder(),
         ),
       ),
     );
