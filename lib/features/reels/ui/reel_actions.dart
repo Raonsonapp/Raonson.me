@@ -1,35 +1,32 @@
 import 'package:flutter/material.dart';
+import '../data/reel_model.dart';
 
 class ReelActions extends StatelessWidget {
-  final int index;
-  const ReelActions({super.key, required this.index});
+  final ReelModel reel;
+  const ReelActions({super.key, required this.reel});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _icon(Icons.favorite, '1.2K'),
-        const SizedBox(height: 20),
-        _icon(Icons.comment, '320'),
-        const SizedBox(height: 20),
-        _icon(Icons.send, ''),
-        const SizedBox(height: 20),
-        CircleAvatar(
-          radius: 18,
-          backgroundImage: NetworkImage(
-            'https://i.pravatar.cc/150?img=$index',
-          ),
-        ),
+        _icon(Icons.favorite, reel.likes.toString()),
+        const SizedBox(height: 16),
+        _icon(Icons.chat_bubble, reel.comments.toString()),
+        const SizedBox(height: 16),
+        _icon(Icons.send, 'Share'),
+        const SizedBox(height: 16),
+        _icon(Icons.more_vert, ''),
       ],
     );
   }
 
-  Widget _icon(IconData icon, String text) {
+  Widget _icon(IconData icon, String label) {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 32),
-        if (text.isNotEmpty)
-          Text(text, style: const TextStyle(color: Colors.white)),
+        const SizedBox(height: 4),
+        Text(label,
+            style: const TextStyle(color: Colors.white, fontSize: 12)),
       ],
     );
   }
