@@ -1,49 +1,65 @@
 import 'package:flutter/material.dart';
-import '../../../core/widgets/custom_button.dart';
-import '../../../core/widgets/custom_textfield.dart';
-import '../../../core/animations/slide_animation.dart';
 
 class RegisterScreen extends StatelessWidget {
-  RegisterScreen({super.key});
-
-  final usernameController = TextEditingController();
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final VoidCallback onSwitch;
+  const RegisterScreen({super.key, required this.onSwitch});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
-      body: SlideAnimation(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              CustomTextField(
-                hint: 'Username',
-                controller: usernameController,
+              const Text(
+                'Create account',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
-
-              CustomTextField(
-                hint: 'Email',
-                controller: emailController,
-              ),
-              const SizedBox(height: 12),
-
-              CustomTextField(
-                hint: 'Password',
-                controller: passwordController,
-                obscure: true,
-              ),
-
               const SizedBox(height: 24),
-
-              CustomButton(
-                text: 'Next',
-                onTap: () {
-                  Navigator.pushNamed(context, '/otp');
-                },
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Username',
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: InputDecoration(
+                  hintText: 'Email',
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Password',
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: const Text('Sign Up'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: onSwitch,
+                child: const Text('Already have an account? Log in'),
               ),
             ],
           ),
