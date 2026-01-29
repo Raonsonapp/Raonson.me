@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import '../data/reel_model.dart';
 import 'reel_actions.dart';
 
@@ -12,61 +11,39 @@ class ReelPlayer extends StatefulWidget {
 }
 
 class _ReelPlayerState extends State<ReelPlayer> {
-  late VideoPlayerController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = VideoPlayerController.network(widget.reel.videoUrl)
-      ..initialize().then((_) {
-        setState(() {});
-        controller.play();
-        controller.setLooping(true);
-      });
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
+  void toggleLike() {
+    setState(() {
+      widget.reel.isLiked = !widget.reel.isLiked;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned.fill(
-          child: controller.value.isInitialized
-              ? VideoPlayer(controller)
-              : const Center(child: CircularProgressIndicator()),
+        // VIDEO PLACEHOLDER
+        Container(
+          color: Colors.black,
+          alignment: Alignment.center,
+          child: const Icon(
+            Icons.play_circle_outline,
+            size: 100,
+            color: Colors.white54,
+          ),
         ),
+
+        // CAPTION
         Positioned(
-          right: 12,
-          bottom: 80,
-          child: ReelActions(reel: widget.reel),
-        ),
-        Positioned(
-          left: 12,
+          left: 16,
           bottom: 40,
           right: 80,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundImage:
-                        NetworkImage(widget.reel.avatar),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.reel.userName,
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
+              Text(
+                widget.reel.userName,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
@@ -74,6 +51,17 @@ class _ReelPlayerState extends State<ReelPlayer> {
                 style: const TextStyle(color: Colors.white),
               ),
             ],
+          ),
+        ),
+
+        // ACTIONS
+        Positioned(
+          right: 8,
+          bottom: 0,
+          top: 0,
+          child: ReelActions(
+            reel: widget.reel,
+            onLike: toggleLike,
           ),
         ),
       ],
