@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data/user_model.dart';
+import 'edit_profile_screen.dart';
 import 'user_posts_grid.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -7,110 +7,91 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = UserModel(
-      username: 'raonson',
-      name: 'Raonson App',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      bio: '🚀 Next-gen social app\n🎬 Reels • Anime • AI',
-      posts: 42,
-      followers: 1200,
-      following: 180,
-    );
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(user.username),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {},
-          )
+        title: const Text('raonson'),
+        actions: const [
+          Icon(Icons.menu),
+          SizedBox(width: 12),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _header(user),
-            _actions(),
-            const SizedBox(height: 12),
-            const UserPostsGrid(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _header(UserModel user) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+      body: ListView(
+        padding: const EdgeInsets.all(12),
         children: [
+          // Header
           Row(
             children: [
-              CircleAvatar(
+              const CircleAvatar(
                 radius: 40,
-                backgroundImage: NetworkImage(user.avatar),
+                backgroundColor: Colors.grey,
+                child: Icon(Icons.person, size: 40),
               ),
+              const SizedBox(width: 16),
               Expanded(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _stat(user.posts, 'Posts'),
-                    _stat(user.followers, 'Followers'),
-                    _stat(user.following, 'Following'),
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: const [
+                    _StatItem(title: 'Posts', value: '24'),
+                    _StatItem(title: 'Followers', value: '1.2K'),
+                    _StatItem(title: 'Following', value: '180'),
                   ],
                 ),
-              )
+              ),
             ],
           ),
+
           const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(user.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold)),
-                Text(user.bio),
-              ],
-            ),
+
+          // Username + bio
+          const Text(
+            'Raonson Official',
+            style: TextStyle(fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 4),
+          const Text(
+            'Next generation social app 🚀\nAnime • Reels • AI',
+          ),
+
+          const SizedBox(height: 12),
+
+          // Edit profile
+          OutlinedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const EditProfileScreen(),
+                ),
+              );
+            },
+            child: const Text('Edit profile'),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Posts grid
+          const UserPostsGrid(),
         ],
       ),
     );
   }
+}
 
-  Widget _stat(int value, String label) {
+class _StatItem extends StatelessWidget {
+  final String title;
+  final String value;
+  const _StatItem({required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value.toString(),
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        Text(title),
       ],
-    );
-  }
-
-  Widget _actions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {},
-              child: const Text('Edit Profile'),
-            ),
-          ),
-          const SizedBox(width: 8),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Icon(Icons.person_add),
-          ),
-        ],
-      ),
     );
   }
 }
