@@ -43,3 +43,15 @@ class Comment(Base):
     post_id = Column(Integer, ForeignKey("posts.id"))
     text = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
+class Story(Base):
+    __tablename__ = "stories"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    media_url = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class StoryView(Base):
+    __tablename__ = "story_views"
+    id = Column(Integer, primary_key=True)
+    story_id = Column(Integer, ForeignKey("stories.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
