@@ -24,11 +24,11 @@ class Follow(Base):
     following_id = Column(Integer, ForeignKey("users.id"))
 class Post(Base):
     __tablename__ = "posts"
-
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    media_url = Column(String, nullable=False)
-    caption = Column(String, nullable=True)
+    media_url = Column(String)
+    caption = Column(String)
+    post_type = Column(String)  # post | reel | gallery
     created_at = Column(DateTime, default=datetime.utcnow)
 class Like(Base):
     __tablename__ = "likes"
