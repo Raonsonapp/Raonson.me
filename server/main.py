@@ -1,3 +1,4 @@
+from .follow import router as follow_router
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .profile import router as profile_router
@@ -47,3 +48,4 @@ def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
 def read_me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
 app.include_router(profile_router)
+app.include_router(follow_router)
