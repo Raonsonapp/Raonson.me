@@ -46,3 +46,4 @@ def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
 @app.get("/auth/me", response_model=schemas.UserResponse)
 def read_me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
+app.include_router(profile_router)
