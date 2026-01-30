@@ -26,3 +26,26 @@ def create_user(db: Session, data: schemas.RegisterRequest):
     db.commit()
     db.refresh(user)
     return user
+from jose import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "RAONSON_SUPER_SECRET_KEY"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 рӯз
+
+def verify_password(plain, hashed):
+    return pwd_context.verify(plain, hashed)
+
+def authenticate_user(db: Session, email: str, password: str):
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
