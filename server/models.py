@@ -55,3 +55,10 @@ class StoryView(Base):
     id = Column(Integer, primary_key=True)
     story_id = Column(Integer, ForeignKey("stories.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
+class Post(Base):
+    __tablename__ = "posts"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    media_url = Column(String)
+    caption = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
