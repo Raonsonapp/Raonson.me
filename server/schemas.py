@@ -29,3 +29,10 @@ class ProfileResponse(BaseModel):
     avatar: str | None
     followers: int
     following: int
+class PostCreate(BaseModel):
+    caption: str
+    media_url: str
+
+class CommentCreate(BaseModel):
+    post_id: int
+    text: str
