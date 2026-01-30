@@ -38,3 +38,12 @@ class CommentCreate(BaseModel):
     text: str
 class StoryCreate(BaseModel):
     media_url: str
+class PostOut(BaseModel):
+    id: int
+    user_id: int
+    media_url: str
+    caption: str | None
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
