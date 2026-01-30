@@ -1,3 +1,5 @@
+from api.likes import router as likes_router
+from api.comments import router as comments_router
 from api.search import router as search_router
 from api.profile import router as profile_router
 from api.reels import router as reels_router
@@ -69,3 +71,5 @@ app.include_router(upload_router)
 app.include_router(reels_router)
 app.include_router(profile_router)
 app.include_router(search_router)
+app.include_router(likes_router)
+app.include_router(comments_router)                
