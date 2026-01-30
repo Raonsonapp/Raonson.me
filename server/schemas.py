@@ -9,3 +9,10 @@ class RegisterResponse(BaseModel):
     id: int
     username: str
     email: str
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
