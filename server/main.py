@@ -1,3 +1,4 @@
+from .reels import router as reels_router
 from .stories import router as stories_router
 from .posts import router as posts_router
 from .follow import router as follow_router
@@ -53,3 +54,4 @@ app.include_router(profile_router)
 app.include_router(follow_router)
 app.include_router(posts_router)
 app.include_router(stories_router
+app.include_router(reels_router)
