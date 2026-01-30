@@ -36,3 +36,5 @@ class PostCreate(BaseModel):
 class CommentCreate(BaseModel):
     post_id: int
     text: str
+class StoryCreate(BaseModel):
+    media_url: str
