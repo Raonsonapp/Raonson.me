@@ -22,3 +22,24 @@ class Follow(Base):
     id = Column(Integer, primary_key=True)
     follower_id = Column(Integer, ForeignKey("users.id"))
     following_id = Column(Integer, ForeignKey("users.id"))
+class Post(Base):
+    __tablename__ = "posts"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    caption = Column(String)
+    media_url = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Like(Base):
+    __tablename__ = "likes"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    post_id = Column(Integer, ForeignKey("posts.id"))
+
+class Comment(Base):
+    __tablename__ = "comments"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    post_id = Column(Integer, ForeignKey("posts.id"))
+    text = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
