@@ -23,3 +23,9 @@ class UserResponse(BaseModel):
 
     class Config:
         orm_mode = True
+class ProfileResponse(BaseModel):
+    username: str
+    bio: str
+    avatar: str | None
+    followers: int
+    following: int
