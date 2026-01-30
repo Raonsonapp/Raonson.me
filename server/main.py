@@ -1,3 +1,4 @@
+from .stories import router as stories_router
 from .posts import router as posts_router
 from .follow import router as follow_router
 from fastapi import FastAPI, Depends, HTTPException
@@ -51,3 +52,4 @@ def read_me(current_user: models.User = Depends(auth.get_current_user)):
 app.include_router(profile_router)
 app.include_router(follow_router)
 app.include_router(posts_router)
+app.include_router(stories_router
