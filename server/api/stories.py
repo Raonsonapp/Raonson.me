@@ -1,52 +1,49 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
 from database import get_db
-from models import Story, StoryView
-from datetime import datetime
+from models.story import Story
+from auth import get_current_user
 
 router = APIRouter(prefix="/stories", tags=["Stories"])
-@router.post("/upload")
-def upload_story(user_id: int, media_url: str, db: Session = Depends(get_db)):
+@router.post("/")
+def add_story(media_url: str,
+              media_type: str,
+              db: Session = Depends(get_db),
+              user = Depends(get_current_user)):
+
     story = Story(
-        user_id=user_id,
+        user_id=user.id,
         media_url=media_url,
-        created_at=datetime.utcnow()
+        media_type=media_type
     )
     db.add(story)
     db.commit()
-    return {"status": "story_uploaded"}
-  @router.get("/")
+    return {"success": True}
+@router.get("/")
 def get_stories(db: Session = Depends(get_db)):
-    from datetime import timedelta
+    limit_time = datetime.utcnow() - timedelta(hours=24)
 
-    time_limit = datetime.utcnow() - timedelta(hours=24)
-    stories = db.query(Story).filter(Story.created_at >= time_limit).all()
+    stories = db.query(Story)\
+        .filter(Story.created_at >= limit_time)\
+        .all()
 
-    result = []
-    for s in stories:
-        views = db.query(StoryView).filter(StoryView.story_id == s.id).count()
-        result.append({
-            "id": s.id,
-            "user_id": s.user_id,
-            "media_url": s.media_url,
-            "views": views,
-            "created_at": s.created_at
-        })
-    return result
-  @router.post("/{story_id}/view")
-def view_story(story_id: int, user_id: int, db: Session = Depends(get_db)):
-    exists = db.query(StoryView).filter_by(
-        story_id=story_id,
-        user_id=user_id
-    ).first()
+    return [{
+        "id": s.id,
+        "user_id": s.user_id,
+        "username": s.user.username,
+        "avatar": s.user.avatar,
+        "media": s.media_url,
+        "type": s.media_type,
+        "views": s.views
+    } for s in stories]
+@router.post("/view/{story_id}")
+def view_story(story_id: int, db: Session = Depends(get_db)):
+    story = db.query(Story).filter_by(id=story_id).first()
+    if not story:
+        return {"error": "Story not found"}
 
-    if exists:
-        return {"status": "already_viewed"}
-
-    view = StoryView(
-        story_id=story_id,
-        user_id=user_id
-    )
-    db.add(view)
+    story.views += 1
     db.commit()
-    return {"status": "view_added"}
+    return {"views": story.views}
+    
