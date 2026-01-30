@@ -30,3 +30,15 @@ def register(data: schemas.RegisterRequest, db: Session = Depends(get_db)):
         if str(e) == "EMAIL_EXISTS":
             raise HTTPException(status_code=400, detail="Email already exists")
         raise HTTPException(status_code=400, detail="Registration failed")
+@app.post("/auth/login", response_model=schemas.TokenResponse)
+def login(data: schemas.LoginRequest, db: Session = Depends(get_db)):
+    user = auth.authenticate_user(db, data.email, data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = auth.create_access_token({
+        "user_id": user.id,
+        "username": user.username
+    })
+
+    return {"access_token": token}
