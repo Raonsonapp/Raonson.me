@@ -1,3 +1,4 @@
+from api.profile import router as profile_router
 from api.reels import router as reels_router
 from api.stories import router as stories_router
 from api.upload import router as upload_router
@@ -65,3 +66,4 @@ app.include_router(feed_router)
 app.include_router(stories_router)
 app.include_router(upload_router)
 app.include_router(reels_router)
+app.include_router(profile_router)
