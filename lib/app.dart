@@ -1,0 +1,1 @@
+import 'package:flutter/material.dart';import 'core/theme/app_theme.dart';class RaonsonApp extends StatelessWidget{const RaonsonApp({super.key});@override Widget build(c)=>MaterialApp(title:'Raonson',theme:AppTheme.light,home:const Scaffold());}
