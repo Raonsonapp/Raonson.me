@@ -62,3 +62,12 @@ class Post(Base):
     media_url = Column(String)
     caption = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+class Reel(Base):
+    __tablename__ = "reels"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    video_url = Column(String)
+    caption = Column(String, nullable=True)
+    views = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
