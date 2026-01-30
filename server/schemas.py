@@ -47,3 +47,13 @@ class PostOut(BaseModel):
 
     class Config:
         orm_mode = True
+class ReelOut(BaseModel):
+    id: int
+    user_id: int
+    video_url: str
+    caption: str | None
+    views: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
