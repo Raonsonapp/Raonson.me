@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from .profile import router as profile_router
 
 import models, schemas, auth
 from database import engine, SessionLocal
