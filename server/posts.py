@@ -54,3 +54,4 @@ def add_comment(
     db.add(comment)
     db.commit()
     return {"status": "commented"}
+views = Column(Integer, default=0)
