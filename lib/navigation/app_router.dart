@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import '../features/home/ui/home_screen.dart';
+import '../features/feed/ui/feed_screen.dart';
+import '../features/reels/ui/reels_screen.dart';
+import '../features/upload/ui/upload_screen.dart';
+import '../features/search/ui/search_screen.dart';
+import '../features/profile/ui/profile_screen.dart';
 
 class AppRouter {
-  static Route<dynamic> generateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case '/':
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
-      default:
-        return MaterialPageRoute(
-          builder: (_) => const Scaffold(
-            body: Center(child: Text('404')),
-          ),
-        );
-    }
-  }
+  static final pages = <Widget>[
+    const FeedScreen(),
+    const SearchScreen(),
+    const UploadScreen(),
+    const ReelsScreen(),
+    const ProfileScreen(),
+  ];
 }
