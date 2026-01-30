@@ -1,14 +1,17 @@
 def parse_script(text):
-    lines = text.strip().split("\n")
     scenes = []
 
-    for line in lines:
-        if ":" in line:
-            character, dialogue = line.split(":", 1)
-            scenes.append({
-                "character": character.strip().lower(),
-                "text": dialogue.strip()
-            })
+    lines = text.strip().split("\n")
+    for i, line in enumerate(lines):
+        if ":" not in line:
+            continue
+
+        character, dialogue = line.split(":", 1)
+        scenes.append({
+            "id": i + 1,
+            "character": character.strip().lower(),
+            "text": dialogue.strip()
+        })
 
     return scenes
 
@@ -16,10 +19,11 @@ def parse_script(text):
 if __name__ == "__main__":
     script = """
     Hero: I will protect everyone.
-    Villain: You are too weak.
-    Narrator: The battle begins.
+    Villain: You are too weak to stop me.
+    Narrator: The final battle begins.
     """
 
-    result = parse_script(script)
-    for r in result:
-        print(r)
+    parsed = parse_script(script)
+
+    for scene in parsed:
+        print(scene)
