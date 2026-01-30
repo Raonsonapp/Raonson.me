@@ -57,3 +57,6 @@ class ReelOut(BaseModel):
 
     class Config:
         orm_mode = True
+class UploadResponse(BaseModel):
+    success: bool
+    media_url: str
