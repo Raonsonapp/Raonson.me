@@ -1,0 +1,1 @@
+import 'package:flutter/widgets.dart';class SlideAnim extends StatelessWidget{final Widget c;const SlideAnim(this.c,{super.key});@override Widget build(_) => c;}

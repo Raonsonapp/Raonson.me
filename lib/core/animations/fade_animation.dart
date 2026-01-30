@@ -1,0 +1,1 @@
+import 'package:flutter/widgets.dart';class FadeAnim extends StatelessWidget{final Widget c;const FadeAnim(this.c,{super.key});@override Widget build(_) => c;}
