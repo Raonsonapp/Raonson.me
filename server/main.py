@@ -1,3 +1,4 @@
+from api.follows import router as follows_router
 from api.likes import router as likes_router
 from api.comments import router as comments_router
 from api.search import router as search_router
@@ -73,3 +74,4 @@ app.include_router(profile_router)
 app.include_router(search_router)
 app.include_router(likes_router)
 app.include_router(comments_router)                
+app.include_router(follows_router)
