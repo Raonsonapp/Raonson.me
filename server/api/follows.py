@@ -1,71 +1,47 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Follow, User
-from auth import get_current_user
+from models.follow import Follow
 
-router = APIRouter(prefix="/follows", tags=["Follows"])
-@router.post("/{user_id}")
-def toggle_follow(user_id: int,
-                  db: Session = Depends(get_db),
-                  user = Depends(get_current_user)):
+router = APIRouter(prefix="/follow", tags=["Follow"])
 
-    if user.id == user_id:
-        return {"error": "Cannot follow yourself"}
+@router.post("/")
+def follow_user(follower_id: int, following_id: int, db: Session = Depends(get_db)):
+    if follower_id == following_id:
+        raise HTTPException(status_code=400, detail="Cannot follow yourself")
 
-    target = db.query(User).filter_by(id=user_id).first()
-    if not target:
-        return {"error": "User not found"}
+    exists = db.query(Follow).filter_by(
+        follower_id=follower_id,
+        following_id=following_id
+    ).first()
 
-    follow = db.query(Follow)\
-        .filter_by(follower_id=user.id, following_id=user_id)\
-        .first()
+    if exists:
+        raise HTTPException(status_code=400, detail="Already following")
 
-    if follow:
-        db.delete(follow)
-        user.following_count -= 1
-        target.followers_count -= 1
-        db.commit()
-        return {"following": False}
-
-    new_follow = Follow(
-        follower_id=user.id,
-        following_id=user_id
-    )
-    db.add(new_follow)
-    user.following_count += 1
-    target.followers_count += 1
+    follow = Follow(follower_id=follower_id, following_id=following_id)
+    db.add(follow)
     db.commit()
-    return {"following": True}
-@router.get("/followers/{user_id}")
-def followers(user_id: int, db: Session = Depends(get_db)):
-    followers = db.query(Follow)\
-        .filter_by(following_id=user_id)\
-        .all()
+    return {"status": "followed"}
 
-    return [{
-        "id": f.follower.id,
-        "username": f.follower.username,
-        "avatar": f.follower.avatar
-    } for f in followers]
-@router.get("/following/{user_id}")
-def following(user_id: int, db: Session = Depends(get_db)):
-    following = db.query(Follow)\
-        .filter_by(follower_id=user_id)\
-        .all()
+@router.delete("/")
+def unfollow_user(follower_id: int, following_id: int, db: Session = Depends(get_db)):
+    follow = db.query(Follow).filter_by(
+        follower_id=follower_id,
+        following_id=following_id
+    ).first()
 
-    return [{
-        "id": f.following.id,
-        "username": f.following.username,
-        "avatar": f.following.avatar
-    } for f in following]
-  @router.get("/status/{user_id}")
-def follow_status(user_id: int,
-                  db: Session = Depends(get_db),
-                  user = Depends(get_current_user)):
+    if not follow:
+        raise HTTPException(status_code=404, detail="Not following")
 
-    follow = db.query(Follow)\
-        .filter_by(follower_id=user.id, following_id=user_id)\
-        .first()
+    db.delete(follow)
+    db.commit()
+    return {"status": "unfollowed"}
 
-    return {"following": bool(follow)}
+@router.get("/count/{user_id}")
+def follow_count(user_id: int, db: Session = Depends(get_db)):
+    followers = db.query(Follow).filter_by(following_id=user_id).count()
+    following = db.query(Follow).filter_by(follower_id=user_id).count()
+    return {
+        "followers": followers,
+        "following": following
+            }
