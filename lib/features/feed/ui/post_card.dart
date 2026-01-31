@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import 'comment_sheet.dart';
 import 'like_button.dart';
 import 'double_tap_like.dart';
@@ -79,7 +80,12 @@ Row(
             ),
           ],
         ),
-
+            IconButton(
+  icon: const Icon(Icons.share_outlined),
+  onPressed: () {
+    Share.share("Check this post in Raonson!");
+  },
+),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 12),
           child: Text(
