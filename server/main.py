@@ -1,3 +1,5 @@
+from api.feed import router as feed_router
+from api.posts import router as post_router
 from media.upload import router as media_router
 from api.interactions import router as interactions_router
 from api.follows import router as follows_router
@@ -79,3 +81,5 @@ app.include_router(comments_router)
 app.include_router(follows_router)
 app.include_router(interactions_router)
 app.include_router(media_router)
+app.include_router(feed_router)
+app.include_router(post_router)
