@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../reels/ui/reels_screen.dart';
 import '../../upload/ui/upload_screen.dart';
 import '../../feed/ui/post_card.dart';
 import '../../stories/ui/stories_bar.dart';
@@ -19,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Center(child: Text('Feed')),
     SearchScreen(),
     UploadScreen(),
-    Center(child: Text('Reels')),
+    ReelsScreen(),,
     Center(child: Text('Profile')),
   ];
 
