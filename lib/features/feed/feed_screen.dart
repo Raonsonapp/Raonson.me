@@ -1,3 +1,4 @@
+import 'post_card.dart';
 import '../stories/stories_bar.dart';
 import 'package:flutter/material.dart';
 import 'post_card.dart';
@@ -13,16 +14,14 @@ class FeedScreen extends StatelessWidget {
       body: Column(
   children: [
 
-    // 🔵 STORIES БОЛО
     const StoriesBar(),
 
-    // 🔽 ПОСТҲО ПОЁН
     Expanded(
       child: ListView(
         children: const [
-          Text("Post 1"),
-          Text("Post 2"),
-          Text("Post 3"),
+          PostCard(),
+          PostCard(),
+          PostCard(),
         ],
       ),
     ),
