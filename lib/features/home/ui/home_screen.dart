@@ -1,3 +1,4 @@
+import '../../stories/ui/stories_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../navigation/bottom_nav.dart';
 
@@ -22,11 +23,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[index],
-      bottomNavigationBar: BottomNav(
-        index: index,
-        onTap: (i) => setState(() => index = i),
+      body: Column(
+  children: const [
+    StoriesBar(),
+    Divider(height: 1),
+    Expanded(
+      child: Center(
+        child: Text("Feed coming..."),
       ),
-    );
-  }
-}
+    ),
+  ],
+),
