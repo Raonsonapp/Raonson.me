@@ -3,6 +3,17 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Post, Like, Comment
 from datetime import datetime
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models.post import Post
+
+router = APIRouter(prefix="/feed", tags=["Feed"])
+
+@router.get("/")
+def get_feed(db: Session = Depends(get_db)):
+    posts = db.query(Post).order_by(Post.created_at.desc()).all()
+    return posts
 
 router = APIRouter(prefix="/feed", tags=["Feed"])
 @router.get("/")
