@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'comment_sheet.dart';
+import 'like_button.dart';
 
 class PostCard extends StatefulWidget {
   const PostCard({super.key});
@@ -59,7 +60,7 @@ class _PostCardState extends State<PostCard> {
             ),
             const Spacer(),
             IconButton(
-              icon: const Icon(Icons.bookmark_border),
+              icon: const LikeButton(),
               onPressed: () {},
             ),
           ],
