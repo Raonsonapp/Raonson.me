@@ -38,6 +38,10 @@ class _HomeScreenState extends State<HomeScreen> {
       PostCard(),
       PostCard(),
       PostCard(),
-    ],
-  ),
+     body: ListView(
+  children: const [
+    StoriesBar(),
+    SizedBox(height: 10),
+    Text("Feed coming here"),
+  ],
 ),
