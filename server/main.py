@@ -1,3 +1,4 @@
+from media.upload import router as media_router
 from api.interactions import router as interactions_router
 from api.follows import router as follows_router
 from api.likes import router as likes_router
@@ -77,3 +78,4 @@ app.include_router(likes_router)
 app.include_router(comments_router)                
 app.include_router(follows_router)
 app.include_router(interactions_router)
+app.include_router(media_router)
