@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../profile/ui/profile_screen.dart';
 import '../../reels/ui/reels_screen.dart';
 import '../../upload/ui/upload_screen.dart';
 import '../../feed/ui/post_card.dart';
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
     SearchScreen(),
     UploadScreen(),
     ReelsScreen(),,
-    Center(child: Text('Profile')),
+    ProfileScreen(),
   ];
 
   @override
