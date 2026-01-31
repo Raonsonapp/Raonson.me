@@ -46,3 +46,15 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 }
+TextField(controller: emailController)
+TextField(controller: passController)
+
+ElevatedButton(
+  onPressed: () {
+    AuthService().register(
+      emailController.text,
+      passController.text,
+    );
+  },
+  child: Text('Register'),
+)
