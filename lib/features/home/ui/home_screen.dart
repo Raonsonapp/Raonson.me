@@ -1,3 +1,4 @@
+import '../../feed/ui/post_card.dart';
 import '../../stories/ui/stories_bar.dart';
 import 'package:flutter/material.dart';
 import '../../../navigation/bottom_nav.dart';
@@ -28,9 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
     StoriesBar(),
     Divider(height: 1),
     Expanded(
-      child: Center(
-        child: Text("Feed coming..."),
-      ),
-    ),
-  ],
+  child: ListView(
+    children: const [
+      PostCard(),
+      PostCard(),
+      PostCard(),
+    ],
+  ),
 ),
