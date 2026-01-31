@@ -6,83 +6,86 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("raonson_user"),
-        actions: const [
-          Icon(Icons.menu),
-          SizedBox(width: 12),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
+      body: SafeArea(
+        child: ListView(
           children: [
-
-            /// Avatar + Stats
+            // TOP BAR
             Padding(
               padding: const EdgeInsets.all(16),
+              child: Row(
+                children: const [
+                  Text(
+                    "raonson_user",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Spacer(),
+                  Icon(Icons.menu),
+                ],
+              ),
+            ),
+
+            // AVATAR + STATS
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 children: [
                   const CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.grey,
-                    child: Icon(Icons.person, size: 40),
+                    child: Icon(Icons.person, size: 40, color: Colors.white),
                   ),
-                  const SizedBox(width: 20),
-
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: const [
-                        _StatItem("12", "Posts"),
-                        _StatItem("340", "Followers"),
-                        _StatItem("180", "Following"),
-                      ],
-                    ),
-                  ),
+                  const Spacer(),
+                  _stat("12", "Posts"),
+                  _stat("540", "Followers"),
+                  _stat("320", "Following"),
                 ],
-              ),
-            ),
-
-            /// Bio
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Raonson User\nFlutter Developer 🚀",
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
               ),
             ),
 
             const SizedBox(height: 12),
 
-            /// Edit Button
+            // BIO
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Raonson Official",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Create • Share • Build 🚀"),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // EDIT BUTTON
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: ElevatedButton(
+              child: OutlinedButton(
                 onPressed: () {},
                 child: const Text("Edit Profile"),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            /// Posts Grid
+            // POSTS GRID
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: 9,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              itemCount: 12,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
                 crossAxisSpacing: 2,
                 mainAxisSpacing: 2,
               ),
-              itemBuilder: (context, index) {
-                return Container(
-                  color: Colors.grey.shade300,
-                  child: const Icon(Icons.image),
-                );
+              itemBuilder: (_, __) {
+                return Container(color: Colors.grey[300]);
               },
             ),
           ],
@@ -90,23 +93,15 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-/// Stat Widget
-class _StatItem extends StatelessWidget {
-  final String number;
-  final String label;
-
-  const _StatItem(this.number, this.label);
-
-  @override
-  Widget build(BuildContext context) {
+  static Widget _stat(String number, String label) {
     return Column(
       children: [
         Text(number,
             style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold)),
+                fontWeight: FontWeight.bold, fontSize: 16)),
         Text(label),
+        const SizedBox(width: 20),
       ],
     );
   }
