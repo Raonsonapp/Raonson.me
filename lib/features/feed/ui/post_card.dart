@@ -43,16 +43,18 @@ class _PostCardState extends State<PostCard> {
           trailing: const Icon(Icons.more_vert),
         ),
 
-        /// IMAGE + DOUBLE TAP LIKE
+        /// IMAGE + DOUBLE TAP LIKE (ИСЛОҲ)
         DoubleTapLike(
-          onLike: () {
-            setState(() => liked = true);
-          },
-          child: Image.network(
-            post.imageUrl,
-            height: 260,
-            width: double.infinity,
-            fit: BoxFit.cover,
+          child: GestureDetector(
+            onDoubleTap: () {
+              setState(() => liked = true);
+            },
+            child: Image.network(
+              post.imageUrl,
+              height: 260,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
           ),
         ),
 
