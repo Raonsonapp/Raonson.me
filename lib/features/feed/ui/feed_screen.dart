@@ -20,7 +20,7 @@ class _FeedScreenState extends State<FeedScreen> {
         animation: controller,
         builder: (_, __) => ListView(
           children: controller.posts
-              .map((p) => PostCard(post: p, controller: controller))
+              .map((p) => PostCard(post: p))   // ← ИСЛОҲ ШУД
               .toList(),
         ),
       ),
