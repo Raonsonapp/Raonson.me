@@ -5,6 +5,11 @@ import 'like_button.dart';
 import 'double_tap_like.dart';
 
 class PostCard extends StatefulWidget {
+  @override
+  _PostCardState createState() => _PostCardState();
+}
+class _PostCardState extends State<PostCard> {
+  bool isSaved = false;   // ИН SAVE STATE АСТ
   const PostCard({super.key});
 
   @override
@@ -80,6 +85,16 @@ Row(
             ),
           ],
         ),
+            IconButton(
+  icon: Icon(
+    isSaved ? Icons.bookmark : Icons.bookmark_border,
+  ),
+  onPressed: () {
+    setState(() {
+      isSaved = !isSaved;
+    });
+  },
+),
             IconButton(
   icon: const Icon(Icons.share_outlined),
   onPressed: () {
