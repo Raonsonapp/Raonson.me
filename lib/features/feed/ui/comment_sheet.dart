@@ -1,63 +1,67 @@
 import 'package:flutter/material.dart';
 
-class CommentSheet extends StatefulWidget {
+class CommentSheet extends StatelessWidget {
   const CommentSheet({super.key});
 
   @override
-  State<CommentSheet> createState() => _CommentSheetState();
-}
-
-class _CommentSheetState extends State<CommentSheet> {
-  final TextEditingController controller = TextEditingController();
-  List<String> comments = ["Nice 🔥", "Wow 😍"];
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 400,
-      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
+          const SizedBox(height: 8),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          const SizedBox(height: 10),
+
           const Text(
             "Comments",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
+
           const Divider(),
 
-          Expanded(
-            child: ListView.builder(
-              itemCount: comments.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  leading: const CircleAvatar(child: Icon(Icons.person)),
-                  title: Text(comments[index]),
-                );
-              },
+          const Expanded(
+            child: ListView(
+              children: [
+                ListTile(
+                  leading: CircleAvatar(child: Icon(Icons.person)),
+                  title: Text("user1"),
+                  subtitle: Text("Nice post 🔥"),
+                ),
+                ListTile(
+                  leading: CircleAvatar(child: Icon(Icons.person)),
+                  title: Text("user2"),
+                  subtitle: Text("Amazing app!"),
+                ),
+              ],
             ),
           ),
 
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  decoration: const InputDecoration(
-                    hintText: "Write comment...",
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: "Add a comment...",
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: () {
-                  if (controller.text.isNotEmpty) {
-                    setState(() {
-                      comments.add(controller.text);
-                      controller.clear();
-                    });
-                  }
-                },
-              )
-            ],
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {},
+                )
+              ],
+            ),
           )
         ],
       ),
