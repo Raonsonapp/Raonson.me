@@ -1,66 +1,59 @@
 import 'package:flutter/material.dart';
 
-class ReelsScreen extends StatefulWidget {
+class ReelsScreen extends StatelessWidget {
   const ReelsScreen({super.key});
-
-  @override
-  State<ReelsScreen> createState() => _ReelsScreenState();
-}
-
-class _ReelsScreenState extends State<ReelsScreen> {
-  bool liked = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            color: Colors.black,
-            width: double.infinity,
-            height: double.infinity,
-            child: const Center(
-              child: Icon(Icons.play_circle_fill,
-                  color: Colors.white, size: 100),
-            ),
-          ),
+      body: PageView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
 
-          /// Right buttons
-          Positioned(
-            right: 12,
-            bottom: 120,
-            child: Column(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    liked ? Icons.favorite : Icons.favorite_border,
-                    color: liked ? Colors.red : Colors.white,
-                    size: 32,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      liked = !liked;
-                    });
-                  },
+              /// Fake Video Background
+              Container(
+                color: Colors.black,
+                child: const Center(
+                  child: Icon(Icons.play_circle, color: Colors.white, size: 100),
                 ),
-                const SizedBox(height: 20),
-                const Icon(Icons.comment, color: Colors.white, size: 30),
-                const SizedBox(height: 20),
-                const Icon(Icons.share, color: Colors.white, size: 30),
-              ],
-            ),
-          ),
+              ),
 
-          /// Bottom text
-          const Positioned(
-            left: 12,
-            bottom: 40,
-            child: Text(
-              "@raonson_user\nAmazing Reel 🔥",
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ),
-        ],
+              /// Right Actions
+              Positioned(
+                right: 16,
+                bottom: 100,
+                child: Column(
+                  children: const [
+                    Icon(Icons.favorite, color: Colors.white, size: 32),
+                    SizedBox(height: 20),
+                    Icon(Icons.comment, color: Colors.white, size: 32),
+                    SizedBox(height: 20),
+                    Icon(Icons.share, color: Colors.white, size: 32),
+                  ],
+                ),
+              ),
+
+              /// Username + Caption
+              const Positioned(
+                left: 16,
+                bottom: 40,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("@raonson_user",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 6),
+                    Text("Amazing video 🔥",
+                        style: TextStyle(color: Colors.white)),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
