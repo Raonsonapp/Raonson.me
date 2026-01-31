@@ -37,7 +37,16 @@ class _PostCardState extends State<PostCard> {
     fit: BoxFit.cover,
   ),
 ),
-
+Row(
+  children: [
+    IconButton(
+      icon: const Icon(Icons.favorite_border),
+      onPressed: () {},
+    ),
+    const SizedBox(width: 4),
+    const Text("0"),
+  ],
+),
         // Actions
         Row(
           children: [
