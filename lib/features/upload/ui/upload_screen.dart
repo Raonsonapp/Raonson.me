@@ -1,59 +1,43 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 
-class UploadScreen extends StatefulWidget {
+class UploadScreen extends StatelessWidget {
   const UploadScreen({super.key});
-
-  @override
-  State<UploadScreen> createState() => _UploadScreenState();
-}
-
-class _UploadScreenState extends State<UploadScreen> {
-  File? _image;
-  final picker = ImagePicker();
-
-  Future pickImage() async {
-    final picked = await picker.pickImage(source: ImageSource.gallery);
-
-    if (picked != null) {
-      setState(() {
-        _image = File(picked.path);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("New Post"),
-        actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text("Share"),
-          )
-        ],
+        centerTitle: true,
       ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.photo, size: 80),
+            const SizedBox(height: 20),
 
-      body: Column(
-        children: [
-
-          Expanded(
-            child: _image == null
-                ? const Center(child: Text("No Image Selected"))
-                : Image.file(_image!, fit: BoxFit.cover),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: ElevatedButton.icon(
-              onPressed: pickImage,
-              icon: const Icon(Icons.photo),
-              label: const Text("Choose from Gallery"),
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Gallery coming soon")),
+                );
+              },
+              child: const Text("Choose from Gallery"),
             ),
-          )
-        ],
+
+            const SizedBox(height: 12),
+
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Camera coming soon")),
+                );
+              },
+              child: const Text("Open Camera"),
+            ),
+          ],
+        ),
       ),
     );
   }
