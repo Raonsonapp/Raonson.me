@@ -1,3 +1,4 @@
+import '../../upload/ui/upload_screen.dart';
 import '../../feed/ui/post_card.dart';
 import '../../stories/ui/stories_bar.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final pages = const [
     Center(child: Text('Feed')),
     Center(child: Text('Search')),
-    Center(child: Text('Upload')),
+    UploadScreen(),
     Center(child: Text('Reels')),
     Center(child: Text('Profile')),
   ];
