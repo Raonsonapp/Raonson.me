@@ -7,42 +7,35 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Raonson"),
+        title: const Text("raonson_user"),
         actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.menu),
-          )
+          Icon(Icons.menu),
+          SizedBox(width: 12),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
 
-            const SizedBox(height: 20),
-
-            // AVATAR + COUNTS
+            /// Avatar + Stats
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-
                   const CircleAvatar(
                     radius: 40,
                     backgroundColor: Colors.grey,
                     child: Icon(Icons.person, size: 40),
                   ),
-
                   const SizedBox(width: 20),
 
-                  const Expanded(
+                  Expanded(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _CountColumn("12", "Posts"),
-                        _CountColumn("340", "Followers"),
-                        _CountColumn("180", "Following"),
+                      children: const [
+                        _StatItem("12", "Posts"),
+                        _StatItem("340", "Followers"),
+                        _StatItem("180", "Following"),
                       ],
                     ),
                   ),
@@ -50,27 +43,24 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
-
-            // BIO
+            /// Bio
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Ehson Dev", style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text("Flutter Developer 🚀"),
-                  Text("Raonson Creator"),
-                ],
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Raonson User\nFlutter Developer 🚀",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
-            // EDIT BUTTON
+            /// Edit Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: OutlinedButton(
+              child: ElevatedButton(
                 onPressed: () {},
                 child: const Text("Edit Profile"),
               ),
@@ -78,32 +68,23 @@ class ProfileScreen extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // TABS
-            const DefaultTabController(
-              length: 3,
-              child: Column(
-                children: [
-                  TabBar(
-                    tabs: [
-                      Tab(icon: Icon(Icons.grid_on)),
-                      Tab(icon: Icon(Icons.video_collection)),
-                      Tab(icon: Icon(Icons.person_pin)),
-                    ],
-                  ),
-                  SizedBox(
-                    height: 400,
-                    child: TabBarView(
-                      children: [
-                        _PostGrid(),
-                        Center(child: Text("Reels")),
-                        Center(child: Text("Tagged")),
-                      ],
-                    ),
-                  )
-                ],
+            /// Posts Grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 9,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 2,
+                mainAxisSpacing: 2,
               ),
+              itemBuilder: (context, index) {
+                return Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.image),
+                );
+              },
             ),
-
           ],
         ),
       ),
@@ -111,39 +92,22 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-class _CountColumn extends StatelessWidget {
+/// Stat Widget
+class _StatItem extends StatelessWidget {
   final String number;
   final String label;
 
-  const _CountColumn(this.number, this.label);
+  const _StatItem(this.number, this.label);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(number, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(number,
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold)),
         Text(label),
       ],
-    );
-  }
-}
-
-class _PostGrid extends StatelessWidget {
-  const _PostGrid();
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      itemCount: 12,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-      ),
-      itemBuilder: (_, __) {
-        return Container(
-          margin: const EdgeInsets.all(2),
-          color: Colors.grey.shade300,
-        );
-      },
     );
   }
 }
