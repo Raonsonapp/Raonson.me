@@ -1,8 +1,9 @@
+import 'package:flutter/material.dart';
 import '../../upload/ui/upload_screen.dart';
 import '../../feed/ui/post_card.dart';
 import '../../stories/ui/stories_bar.dart';
-import 'package:flutter/material.dart';
 import '../../../navigation/bottom_nav.dart';
+import '../../search/ui/search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final pages = const [
     Center(child: Text('Feed')),
-    Center(child: Text('Search')),
+    SearchScreen(),
     UploadScreen(),
     Center(child: Text('Reels')),
     Center(child: Text('Profile')),
