@@ -1,25 +1,6 @@
-name: raonson
-description: Raonson Social App
-publish_to: 'none'
-version: 1.0.0+1
-
-environment:
-  sdk: '>=3.0.0 <4.0.0'
-
 dependencies:
   flutter:
     sdk: flutter
-
-  cupertino_icons: ^1.0.2
-  firebase_core: ^2.24.0
-  firebase_auth: ^4.15.0
-  cloud_firestore: ^4.13.0
-  image_picker: ^1.0.4
-  http: ^1.1.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-flutter:
-  uses-material-design: true
+  cupertino_icons: ^1.0.8
+  firebase_core: ^2.30.0
+  firebase_auth: ^4.17.0
