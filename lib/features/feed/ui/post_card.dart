@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'comment_sheet.dart';
 
 class PostCard extends StatefulWidget {
   const PostCard({super.key});
@@ -41,12 +42,13 @@ class _PostCardState extends State<PostCard> {
                 liked ? Icons.favorite : Icons.favorite_border,
                 color: liked ? Colors.red : Colors.black,
               ),
-              onPressed: () {
-                setState(() {
-                  liked = !liked;
-                });
-              },
-            ),
+             onPressed: () {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const CommentSheet(),
+  );
+},
             IconButton(
               icon: const Icon(Icons.comment_outlined),
               onPressed: () {},
