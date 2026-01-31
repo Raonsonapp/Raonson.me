@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'comment_sheet.dart';
 import 'like_button.dart';
+import 'double_tap_like.dart';
 
 class PostCard extends StatefulWidget {
   const PostCard({super.key});
@@ -28,12 +29,14 @@ class _PostCardState extends State<PostCard> {
         ),
 
         // Image
-        Container(
-          height: 250,
-          width: double.infinity,
-          color: Colors.black12,
-          child: const Icon(Icons.image, size: 80),
-        ),
+        DoubleTapLike(
+  child: Image.network(
+    post.imageUrl,
+    height: 250,
+    width: double.infinity,
+    fit: BoxFit.cover,
+  ),
+),
 
         // Actions
         Row(
