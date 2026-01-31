@@ -63,9 +63,11 @@ Row(
   );
 },
             IconButton(
-              icon: const Icon(Icons.comment_outlined),
-              onPressed: () {},
-            ),
+  icon: const Icon(Icons.comment_outlined),
+  onPressed: () {
+    _openComments();
+  },
+),
             IconButton(
               icon: const Icon(Icons.send_outlined),
               onPressed: () {},
