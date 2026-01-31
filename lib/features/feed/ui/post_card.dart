@@ -1,3 +1,4 @@
+import 'comment_sheet.dart';
 import 'package:flutter/material.dart';
 
 class PostCard extends StatefulWidget {
@@ -51,10 +52,13 @@ class _PostCardState extends State<PostCard> {
             ),
             IconButton(
               icon: const Icon(Icons.share_outlined),
-              onPressed: () {},
-            ),
-          ],
-        ),
+              onPressed: () {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const CommentSheet(),
+  );
+},
 
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
