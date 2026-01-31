@@ -6,7 +6,7 @@ class StoriesBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 100,
+      height: 95,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: 10,
@@ -24,15 +24,15 @@ class StoriesBar extends StatelessWidget {
                     ),
                   ),
                   child: const CircleAvatar(
-                    radius: 30,
+                    radius: 28,
                     backgroundColor: Colors.grey,
                     child: Icon(Icons.person, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  "User",
-                  style: TextStyle(fontSize: 12),
+                const SizedBox(height: 6),
+                Text(
+                  "user$index",
+                  style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
