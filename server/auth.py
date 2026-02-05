@@ -1,41 +1,31 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
 
+from security import SECRET_KEY, ALGORITHM
 from database import SessionLocal
 from models import User
-from schemas import UserCreate, UserLogin, Token
-from security import hash_password, verify_password, create_access_token
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-def get_db():
-    db = SessionLocal()
+def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
-        yield db
-    finally:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+        db = SessionLocal()
+        user = db.query(User).filter(User.id == user_id).first()
         db.close()
 
-@router.post("/register")
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(status_code=400, detail="Email already exists")
+        if user is None:
+            raise HTTPException(status_code=401, detail="User not found")
 
-    new_user = User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hash_password(user.password)
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+        return user
 
-    return {"message": "User created"}
-
-@router.post("/login", response_model=Token)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not verify_password(user.password, db_user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    token = create_access_token({"sub": db_user.email})
-    return {"access_token": token}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalid or expired"
+        )
