@@ -1,17 +1,42 @@
-from fastapi import FastAPI
-from database import Base, engine
-from auth import router as auth_router
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
-app = FastAPI(title="Raonson API")
+app = FastAPI()
 
-Base.metadata.create_all(bind=engine)
+# ===== MODELS =====
+class RegisterRequest(BaseModel):
+    username: str
+    password: str
 
-app.include_router(auth_router)
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
+
+# ===== ROOT =====
 @app.get("/")
-def root():
+async def root():
     return {"status": "Raonson server is running"}
 
 @app.get("/health")
-def health():
+async def health():
     return {"health": "ok"}
+
+
+# ===== AUTH =====
+@app.post("/auth/register")
+async def register(data: RegisterRequest):
+    return {
+        "message": "User registered successfully",
+        "username": data.username
+    }
+
+@app.post("/auth/login")
+async def login(data: LoginRequest):
+    if data.password != "123456":
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    return {
+        "message": "Login successful",
+        "token": "fake-jwt-token"
+    }
