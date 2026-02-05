@@ -2,16 +2,16 @@ from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
 
-SECRET_KEY = "RAONSON_SECRET_KEY"
+SECRET_KEY = "RAONSON_SECRET_KEY_CHANGE_LATER"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str):
     return pwd_context.hash(password)
 
-def verify_password(password, hashed):
+def verify_password(password: str, hashed: str):
     return pwd_context.verify(password, hashed)
 
 def create_access_token(data: dict):
