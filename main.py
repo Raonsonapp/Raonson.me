@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from database import SessionLocal, engine, Base
 from models import User
 from security import hash_password, verify_password, create_access_token
+from auth import get_current_user
+from models import User
 
 app = FastAPI()
 
@@ -63,4 +65,10 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     return {
         "access_token": token,
         "token_type": "bearer"
+    }
+@app.get("/me")
+def get_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "username": current_user.username
     }
