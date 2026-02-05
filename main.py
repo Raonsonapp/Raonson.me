@@ -1,9 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(title="Raonson API")
 
-# ===== MODELS =====
+# ======================
+# FAKE DATABASE (TEMP)
+# ======================
+fake_users_db = []
+
+# ======================
+# MODELS
+# ======================
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -12,8 +19,9 @@ class LoginRequest(BaseModel):
     username: str
     password: str
 
-
-# ===== ROOT =====
+# ======================
+# ROOT & HEALTH
+# ======================
 @app.get("/")
 async def root():
     return {"status": "Raonson server is running"}
@@ -22,10 +30,20 @@ async def root():
 async def health():
     return {"health": "ok"}
 
-
-# ===== AUTH =====
+# ======================
+# AUTH
+# ======================
 @app.post("/auth/register")
 async def register(data: RegisterRequest):
+    for user in fake_users_db:
+        if user["username"] == data.username:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+    fake_users_db.append({
+        "username": data.username,
+        "password": data.password
+    })
+
     return {
         "message": "User registered successfully",
         "username": data.username
@@ -33,10 +51,11 @@ async def register(data: RegisterRequest):
 
 @app.post("/auth/login")
 async def login(data: LoginRequest):
-    if data.password != "123456":
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    for user in fake_users_db:
+        if user["username"] == data.username and user["password"] == data.password:
+            return {
+                "message": "Login successful",
+                "token": "fake-jwt-token"
+            }
 
-    return {
-        "message": "Login successful",
-        "token": "fake-jwt-token"
-    }
+    raise HTTPException(status_code=401, detail="Invalid credentials")
