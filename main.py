@@ -2,52 +2,68 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
+import uuid
 
 app = FastAPI()
 
-# ===== MODELS =====
+# =====================
+# MODELS
+# =====================
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
+
 
 class LoginRequest(BaseModel):
     username: str
     password: str
 
+
 class PostCreate(BaseModel):
-    title: str
+    caption: str
     image_url: str
-    description: str
-
-class Post(BaseModel):
-    id: int
-    title: str
-    image_url: str
-    description: str
-    created_at: datetime
 
 
-# ===== STORAGE (TEMP) =====
-posts_db: List[Post] = []
+class Post(PostCreate):
+    id: str
+    created_at: str
 
 
-# ===== ROOT =====
+# =====================
+# FAKE DATABASE
+# =====================
+
+USERS = []
+POSTS: List[Post] = []
+
+
+# =====================
+# ROOT
+# =====================
+
 @app.get("/")
 async def root():
     return {"status": "Raonson server is running"}
+
 
 @app.get("/health")
 async def health():
     return {"health": "ok"}
 
 
-# ===== AUTH =====
+# =====================
+# AUTH
+# =====================
+
 @app.post("/auth/register")
 async def register(data: RegisterRequest):
+    USERS.append(data.username)
     return {
         "message": "User registered successfully",
         "username": data.username
     }
+
 
 @app.post("/auth/login")
 async def login(data: LoginRequest):
@@ -60,20 +76,29 @@ async def login(data: LoginRequest):
     }
 
 
-# ===== POSTS =====
-@app.post("/posts", response_model=Post)
+# =====================
+# POSTS (CREATE + LIST)
+# =====================
+
+@app.post("/posts")
 async def create_post(data: PostCreate):
     post = Post(
-        id=len(posts_db) + 1,
-        title=data.title,
+        id=str(uuid.uuid4()),
+        caption=data.caption,
         image_url=data.image_url,
-        description=data.description,
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow().isoformat()
     )
-    posts_db.append(post)
-    return post
+
+    POSTS.append(post)
+    return {
+        "message": "Post created successfully",
+        "post": post
+    }
 
 
-@app.get("/posts", response_model=List[Post])
+@app.get("/posts")
 async def list_posts():
-    return posts_db
+    return {
+        "count": len(POSTS),
+        "posts": POSTS
+                            }
