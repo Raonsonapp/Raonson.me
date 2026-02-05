@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+from app.database import engine, Base
 
 app = FastAPI(title="Raonson API", version="1.0.0")
+
+# 👇 база ҳангоми старт сохта мешавад
+Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 def root():
