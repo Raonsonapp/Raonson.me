@@ -1,14 +1,20 @@
 from pydantic import BaseModel
 
-class UserCreate(BaseModel):
+class UserOut(BaseModel):
+    id: int
     username: str
-    email: str
-    password: str
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
+class PostOut(BaseModel):
+    id: int
+    image: str
+    caption: str
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+class ReelOut(BaseModel):
+    id: int
+    video: str
+    caption: str
+
+class ChatOut(BaseModel):
+    from_user: int
+    to_user: int
+    message: str
