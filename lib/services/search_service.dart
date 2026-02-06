@@ -1,18 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'api.dart';
+import '../config/api.dart';
 
 class SearchService {
-  static Future<Map<String, dynamic>> search(String query) async {
-    final response = await http.get(
-      Uri.parse("${Api.baseUrl}/search?q=$query"),
-      headers: {"Accept": "application/json"},
+  static Future<Map<String, dynamic>> search(String q) async {
+    final res = await http.get(
+      Uri.parse("$baseUrl/search?q=$q"),
     );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Search failed");
-    }
+    return jsonDecode(res.body);
   }
 }
