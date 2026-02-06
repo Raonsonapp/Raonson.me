@@ -28,6 +28,7 @@ class PostCreate(BaseModel):
 class Post(PostCreate):
     id: str
     created_at: str
+    likes: int = 0
 
 
 # =====================
