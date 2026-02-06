@@ -6,12 +6,13 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
         title: const Text(
           'Raonson',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: const [
           Icon(Icons.add_box_outlined),
@@ -22,30 +23,23 @@ class HomeScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          _storyRow(),
+          _stories(),
           const Divider(color: Colors.white12),
-          _postCard(
-            username: 'ardamehr',
-            caption: 'Good vibes ✨',
-          ),
-          _postCard(
-            username: 'mehrat',
-            caption: 'Life is beautiful 🌍',
-          ),
+          _post('user_one', 'Beautiful day ✨'),
+          _post('user_two', 'Raonson v2 UI 🔥'),
         ],
       ),
     );
   }
 
-  // ---------------- STORIES ----------------
-  Widget _storyRow() {
+  Widget _stories() {
     return SizedBox(
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: 8,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemBuilder: (context, index) {
+        itemCount: 8,
+        itemBuilder: (context, i) {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Column(
@@ -53,9 +47,9 @@ class HomeScreen extends StatelessWidget {
                 Container(
                   width: 64,
                   height: 64,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [Colors.blue, Colors.purple],
                     ),
                   ),
@@ -68,10 +62,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'user$index',
-                  style: const TextStyle(fontSize: 12),
-                ),
+                Text('user$i', style: const TextStyle(fontSize: 12)),
               ],
             ),
           );
@@ -80,45 +71,36 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ---------------- POST ----------------
-  Widget _postCard({
-    required String username,
-    required String caption,
-  }) {
+  Widget _post(String user, String caption) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // header
         ListTile(
           leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text(username),
+          title: Text(user),
           trailing: const Icon(Icons.more_vert),
         ),
-
-        // image placeholder
         Container(
           height: 300,
-          color: Colors.black26,
+          color: Colors.white10,
           child: const Center(
             child: Icon(Icons.image, size: 80, color: Colors.white24),
           ),
         ),
-
-        // actions
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.all(12),
           child: Row(
             children: const [
-              Icon(Icons.favorite_border),
-              SizedBox(width: 16),
-              Icon(Icons.chat_bubble_outline),
-              SizedBox(width: 16),
-              Icon(Icons.send),
+              Icon(Icons.favorite_border, size: 26),
+              SizedBox(width: 18),
+              Icon(Icons.chat_bubble_outline, size: 24),
+              SizedBox(width: 18),
+              Icon(Icons.send, size: 24),
+              Spacer(),
+              Icon(Icons.bookmark_border, size: 24),
             ],
           ),
         ),
-
-        // caption
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: RichText(
@@ -126,7 +108,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(color: Colors.white),
               children: [
                 TextSpan(
-                  text: '$username ',
+                  text: '$user ',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextSpan(text: caption),
@@ -134,7 +116,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(height: 16),
       ],
     );
