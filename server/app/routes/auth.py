@@ -1,35 +1,29 @@
 from fastapi import APIRouter, HTTPException
 from app.schemas.auth import RegisterRequest, LoginRequest
+from app.services.auth_service import register_user, login_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
-# FAKE STORAGE (муваққатӣ)
-FAKE_USERS = []
-
 @router.post("/register")
 def register(data: RegisterRequest):
-    for user in FAKE_USERS:
-        if user["username"] == data.username:
-            raise HTTPException(status_code=400, detail="Username already exists")
-
-    FAKE_USERS.append({
-        "username": data.username,
-        "password": data.password
-    })
+    user = register_user(data.username, data.password)
+    if not user:
+        raise HTTPException(status_code=400, detail="Username already exists")
 
     return {
         "message": "User registered",
-        "username": data.username
+        "user_id": user["id"],
+        "username": user["username"]
     }
 
 
 @router.post("/login")
 def login(data: LoginRequest):
-    for user in FAKE_USERS:
-        if user["username"] == data.username and user["password"] == data.password:
-            return {
-                "message": "Login successful",
-                "token": "fake-token"
-            }
+    user = login_user(data.username, data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    return {
+        "message": "Login successful",
+        "user_id": user["id"]
+    }
