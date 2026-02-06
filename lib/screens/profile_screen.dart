@@ -1,17 +1,37 @@
 import 'package:flutter/material.dart';
+import '../core/auth_storage.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _logout(BuildContext context) async {
+    await AuthStorage.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('ardamehr'),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.menu),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'logout') {
+                _logout(context);
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
           ),
         ],
       ),
@@ -48,20 +68,11 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF4FC3F7),
-                      Color(0xFF1E88E5),
-                    ],
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF4FC3F7), Color(0xFF1E88E5)],
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4FC3F7).withOpacity(0.6),
-                      blurRadius: 12,
-                    ),
-                  ],
                 ),
                 child: const CircleAvatar(
                   radius: 38,
@@ -87,21 +98,14 @@ class _ProfileHeader extends StatelessWidget {
             children: const [
               Text(
                 'Ardamehr',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               SizedBox(width: 6),
-              Icon(
-                Icons.verified,
-                size: 18,
-                color: Color(0xFF4FC3F7),
-              ),
+              Icon(Icons.verified, size: 18, color: Color(0xFF4FC3F7)),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
+          Text(
             'Founder of Raonson 💙\nBuilding something different.',
             style: TextStyle(color: Colors.white70),
           ),
@@ -115,37 +119,25 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatItem({
-    required this.label,
-    required this.value,
-  });
+  const _StatItem({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
+        Text(value,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 12,
-          ),
-        ),
+        Text(label,
+            style: const TextStyle(color: Colors.white60, fontSize: 12)),
       ],
     );
   }
 }
 
 // =======================
-// PROFILE ACTION BUTTONS
+// ACTION BUTTONS
 // =======================
 
 class _ProfileActions extends StatelessWidget {
@@ -158,17 +150,11 @@ class _ProfileActions extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _ActionButton(
-              text: 'Edit Profile',
-              filled: true,
-            ),
+            child: _ActionButton(text: 'Edit Profile', filled: true),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _ActionButton(
-              text: 'Share Profile',
-              filled: false,
-            ),
+            child: _ActionButton(text: 'Share Profile', filled: false),
           ),
         ],
       ),
@@ -180,10 +166,7 @@ class _ActionButton extends StatelessWidget {
   final String text;
   final bool filled;
 
-  const _ActionButton({
-    required this.text,
-    required this.filled,
-  });
+  const _ActionButton({required this.text, required this.filled});
 
   @override
   Widget build(BuildContext context) {
@@ -193,21 +176,8 @@ class _ActionButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: filled ? const Color(0xFF1E88E5) : Colors.white10,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: filled
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF4FC3F7).withOpacity(0.5),
-                  blurRadius: 10,
-                ),
-              ]
-            : [],
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
     );
   }
 }
