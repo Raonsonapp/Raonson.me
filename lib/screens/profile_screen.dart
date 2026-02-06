@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../services/user_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  final int userId = 1; // v1: static user, v2 -> from auth
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('raonson'),
+        title: const Text("Profile"),
         actions: const [
           Icon(Icons.add_box_outlined),
           SizedBox(width: 16),
@@ -15,16 +18,30 @@ class ProfileScreen extends StatelessWidget {
           SizedBox(width: 12),
         ],
       ),
-      body: ListView(
-        children: const [
-          SizedBox(height: 12),
-          _ProfileHeader(),
-          SizedBox(height: 16),
-          _ProfileActions(),
-          SizedBox(height: 16),
-          Divider(height: 1),
-          _PostsGrid(),
-        ],
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: UserService.getProfile(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading profile"));
+          }
+
+          final data = snapshot.data!;
+          final user = data["user"];
+          final posts = data["posts"] as List;
+
+          return ListView(
+            children: [
+              _ProfileHeader(user: user),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              _PostsGrid(posts: posts),
+            ],
+          );
+        },
       ),
     );
   }
@@ -33,12 +50,14 @@ class ProfileScreen extends StatelessWidget {
 /* ---------------- HEADER ---------------- */
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader();
+  final Map<String, dynamic> user;
+
+  const _ProfileHeader({required this.user});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -58,17 +77,17 @@ class _ProfileHeader extends StatelessWidget {
                 child: const CircleAvatar(
                   radius: 38,
                   backgroundImage:
-                      NetworkImage('https://i.pravatar.cc/300?img=10'),
+                      NetworkImage("https://i.pravatar.cc/300?img=10"),
                 ),
               ),
               const SizedBox(width: 24),
-              const Expanded(
+              Expanded(
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _StatItem(label: 'Posts', value: '128'),
-                    _StatItem(label: 'Followers', value: '12.4K'),
-                    _StatItem(label: 'Following', value: '312'),
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: const [
+                    _StatItem(label: "Posts", value: "—"),
+                    _StatItem(label: "Followers", value: "—"),
+                    _StatItem(label: "Following", value: "—"),
                   ],
                 ),
               ),
@@ -76,20 +95,21 @@ class _ProfileHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Row(
-            children: const [
+            children: [
               Text(
-                'Raonson',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                user["username"] ?? "",
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
-              SizedBox(width: 6),
-              Icon(Icons.verified,
+              const SizedBox(width: 6),
+              const Icon(Icons.verified,
                   size: 18, color: Color(0xFF4FC3F7)),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Building something different 💙\nWelcome to Raonson.',
-            style: TextStyle(color: Colors.white70),
+          Text(
+            user["bio"] ?? "",
+            style: const TextStyle(color: Colors.white70),
           ),
         ],
       ),
@@ -124,66 +144,22 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-/* ---------------- ACTIONS ---------------- */
-
-class _ProfileActions extends StatelessWidget {
-  const _ProfileActions();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: const [
-          Expanded(
-            child: _ActionButton(
-              text: 'Edit Profile',
-              filled: true,
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: _ActionButton(
-              text: 'Share Profile',
-              filled: false,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final String text;
-  final bool filled;
-
-  const _ActionButton({required this.text, required this.filled});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 38,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: filled ? const Color(0xFF1E88E5) : Colors.white10,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-}
-
 /* ---------------- POSTS GRID ---------------- */
 
 class _PostsGrid extends StatelessWidget {
-  const _PostsGrid();
+  final List posts;
+
+  const _PostsGrid({required this.posts});
 
   @override
   Widget build(BuildContext context) {
+    if (posts.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: Text("No posts yet")),
+      );
+    }
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -193,20 +169,14 @@ class _PostsGrid extends StatelessWidget {
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
       ),
-      itemCount: mockPosts.length,
+      itemCount: posts.length,
       itemBuilder: (context, index) {
+        final post = posts[index];
         return Image.network(
-          mockPosts[index],
+          post["image"],
           fit: BoxFit.cover,
         );
       },
     );
   }
 }
-
-/* ---------------- MOCK DATA ---------------- */
-
-final mockPosts = List.generate(
-  24,
-  (i) => 'https://picsum.photos/400/400?random=${i + 50}',
-);
