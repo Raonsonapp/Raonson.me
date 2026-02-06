@@ -1,186 +1,195 @@
 import 'package:flutter/material.dart';
+import '../services/reels_service.dart';
 
-class ReelsScreen extends StatelessWidget {
+class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
+
+  @override
+  State<ReelsScreen> createState() => _ReelsScreenState();
+}
+
+class _ReelsScreenState extends State<ReelsScreen> {
+  late Future<List<dynamic>> _reelsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _reelsFuture = ReelsService.getReels();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: 5,
-        itemBuilder: (context, index) {
-          return const ReelItem();
+      body: FutureBuilder<List<dynamic>>(
+        future: _reelsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text('Failed to load reels',
+                  style: TextStyle(color: Colors.white70)),
+            );
+          }
+
+          final reels = snapshot.data ?? [];
+          if (reels.isEmpty) {
+            return const Center(
+              child: Text('No reels yet',
+                  style: TextStyle(color: Colors.white70)),
+            );
+          }
+
+          return PageView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: reels.length,
+            onPageChanged: (index) {
+              final reel = reels[index];
+              ReelsService.addView(reel['id']);
+            },
+            itemBuilder: (context, index) {
+              final reel = reels[index];
+              return ReelItem(
+                reelId: reel['id'],
+                imageUrl: reel['cover_url'] ?? '',
+                username: reel['username'] ?? 'user',
+                caption: reel['caption'] ?? '',
+              );
+            },
+          );
         },
       ),
     );
   }
 }
 
-class ReelItem extends StatelessWidget {
-  const ReelItem({super.key});
+class ReelItem extends StatefulWidget {
+  final int reelId;
+  final String imageUrl;
+  final String username;
+  final String caption;
+
+  const ReelItem({
+    super.key,
+    required this.reelId,
+    required this.imageUrl,
+    required this.username,
+    required this.caption,
+  });
+
+  @override
+  State<ReelItem> createState() => _ReelItemState();
+}
+
+class _ReelItemState extends State<ReelItem> {
+  bool liked = false;
+  bool liking = false;
+
+  Future<void> _like() async {
+    if (liking) return;
+    setState(() {
+      liked = true;
+      liking = true;
+    });
+    try {
+      await ReelsService.likeReel(widget.reelId);
+    } catch (_) {
+      setState(() => liked = false);
+    } finally {
+      liking = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ===== BACKGROUND (VIDEO PLACEHOLDER) =====
         Positioned.fill(
-          child: Image.network(
-            'https://picsum.photos/600/1000',
-            fit: BoxFit.cover,
-          ),
+          child: widget.imageUrl.isNotEmpty
+              ? Image.network(widget.imageUrl, fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _placeholder())
+              : _placeholder(),
         ),
 
-        // ===== GRADIENT OVERLAY =====
+        // overlay
         Positioned.fill(
           child: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black54,
-                  Colors.transparent,
-                  Colors.black87,
-                ],
+                colors: [Colors.black38, Colors.transparent, Colors.black87],
               ),
             ),
           ),
         ),
 
-        // ===== RIGHT ACTION BAR =====
+        // right actions
         Positioned(
           right: 12,
           bottom: 120,
           child: Column(
             children: [
-              _ActionButton(
-                icon: Icons.favorite,
-                label: '12.4K',
-                color: Colors.pinkAccent,
+              GestureDetector(
+                onTap: _like,
+                child: Icon(
+                  liked ? Icons.favorite : Icons.favorite_border,
+                  color: liked ? Colors.pinkAccent : Colors.white,
+                  size: 34,
+                ),
               ),
               const SizedBox(height: 20),
-              _ActionButton(
-                icon: Icons.chat_bubble,
-                label: '322',
-              ),
+              const Icon(Icons.chat_bubble_outline, size: 30),
               const SizedBox(height: 20),
-              _ActionButton(
-                icon: Icons.send,
-                label: 'Share',
-              ),
+              const Icon(Icons.send, size: 30),
               const SizedBox(height: 20),
-              _ActionButton(
-                icon: Icons.bookmark,
-                label: 'Save',
-              ),
+              const Icon(Icons.bookmark_border, size: 30),
             ],
           ),
         ),
 
-        // ===== BOTTOM USER INFO =====
+        // bottom info
         Positioned(
           left: 12,
-          bottom: 30,
+          bottom: 28,
           right: 80,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF4FC3F7),
-                          Color(0xFF1E88E5),
-                        ],
-                      ),
-                    ),
-                    child: const CircleAvatar(
-                      radius: 18,
-                      backgroundImage:
-                          NetworkImage('https://i.pravatar.cc/150'),
-                    ),
+                  const CircleAvatar(
+                    radius: 18,
+                    backgroundImage:
+                        NetworkImage('https://i.pravatar.cc/150'),
                   ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'ardamehr',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(
-                    Icons.verified,
-                    color: Color(0xFF4FC3F7),
-                    size: 18,
-                  ),
+                  const SizedBox(width: 8),
+                  Text(widget.username,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold)),
                 ],
               ),
-              const SizedBox(height: 10),
-              const Text(
-                'Sunset vibes 🌅  #raonson #reels',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
+              const SizedBox(height: 8),
+              Text(widget.caption,
+                  style: const TextStyle(color: Colors.white70)),
             ],
           ),
         ),
       ],
     );
   }
-}
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color? color;
-
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: (color ?? const Color(0xFF4FC3F7)).withOpacity(0.6),
-                blurRadius: 12,
-                spreadRadius: 1,
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            color: color ?? Colors.white,
-            size: 32,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-          ),
-        ),
-      ],
+  Widget _placeholder() {
+    return Container(
+      color: Colors.black26,
+      child: const Center(
+        child: Icon(Icons.play_circle_outline,
+            size: 64, color: Colors.white54),
+      ),
     );
   }
 }
