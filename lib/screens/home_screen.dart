@@ -1,84 +1,92 @@
 import 'package:flutter/material.dart';
+import '../services/post_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<dynamic>> postsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    postsFuture = PostService.getPosts();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Raonson'),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.add_box_outlined),
-          ),
-        ],
       ),
-      body: ListView(
-        children: const [
-          SizedBox(height: 10),
-          StoriesBar(),
-          Divider(color: Colors.white12),
-          PostCard(),
-          PostCard(),
-        ],
-      ),
-    );
-  }
-}
-class StoriesBar extends StatelessWidget {
-  const StoriesBar({super.key});
+      body: FutureBuilder<List<dynamic>>(
+        future: postsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 10,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4FC3F7), Color(0xFF1E88E5)],
-                    ),
-                  ),
-                  child: const CircleAvatar(
-                    radius: 28,
-                    backgroundImage:
-                        NetworkImage('https://i.pravatar.cc/150'),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'user',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ],
-            ),
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Error loading posts',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return const Center(
+              child: Text(
+                'No posts yet',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              final post = posts[index];
+              return PostCard(
+                caption: post['caption'],
+                imageUrl: post['image_url'],
+              );
+            },
           );
         },
       ),
     );
   }
 }
+
+// =======================
+// POST CARD
+// =======================
+
 class PostCard extends StatelessWidget {
-  const PostCard({super.key});
+  final String caption;
+  final String imageUrl;
+
+  const PostCard({
+    super.key,
+    required this.caption,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         ListTile(
           leading: const CircleAvatar(
             backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
@@ -87,13 +95,18 @@ class PostCard extends StatelessWidget {
           trailing: const Icon(Icons.more_vert),
         ),
 
-        // Image
         Image.network(
-          'https://picsum.photos/500/500',
+          imageUrl,
           fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            height: 300,
+            color: Colors.black12,
+            child: const Center(
+              child: Icon(Icons.image, size: 40),
+            ),
+          ),
         ),
 
-        // Actions
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
@@ -109,12 +122,11 @@ class PostCard extends StatelessWidget {
           ),
         ),
 
-        // Caption
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            'ardamehr  Sunset vibes 🌅',
-            style: TextStyle(fontWeight: FontWeight.w500),
+            caption,
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
         ),
 
