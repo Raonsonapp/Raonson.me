@@ -9,12 +9,10 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController controller = TextEditingController();
-
-  final List<Map<String, dynamic>> messages = [
-    {"me": false, "text": "Hello 👋"},
-    {"me": true, "text": "Hi, how are you?"},
-    {"me": false, "text": "All good ✨"},
+  final controller = TextEditingController();
+  final List<Map<String, dynamic>> msgs = [
+    {"me": false, "text": "Hello"},
+    {"me": true, "text": "Hi 👋"},
   ];
 
   @override
@@ -23,80 +21,53 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: Row(
-          children: [
-            const CircleAvatar(radius: 16, child: Icon(Icons.person, size: 16)),
-            const SizedBox(width: 8),
-            Text(widget.username),
-          ],
-        ),
+        title: Text(widget.username),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(12),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                final isMe = msg["me"];
-
+              itemCount: msgs.length,
+              itemBuilder: (context, i) {
+                final m = msgs[i];
                 return Align(
                   alignment:
-                      isMe ? Alignment.centerRight : Alignment.centerLeft,
+                      m["me"] ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isMe
-                          ? const Color(0xFF4DA3FF)
-                          : Colors.white12,
+                      color:
+                          m["me"] ? Colors.blueAccent : Colors.white12,
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: Text(
-                      msg["text"],
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    child: Text(m["text"]),
                   ),
                 );
               },
             ),
           ),
-
-          // -------- INPUT --------
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: const BoxDecoration(
-              border: Border(top: BorderSide(color: Colors.white12)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Message...',
-                      border: InputBorder.none,
-                    ),
-                  ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  decoration:
+                      const InputDecoration(hintText: 'Message'),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: () {
-                    if (controller.text.isEmpty) return;
-                    setState(() {
-                      messages.add({
-                        "me": true,
-                        "text": controller.text,
-                      });
-                      controller.clear();
-                    });
-                  },
-                )
-              ],
-            ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: () {
+                  if (controller.text.isEmpty) return;
+                  setState(() {
+                    msgs.add({"me": true, "text": controller.text});
+                    controller.clear();
+                  });
+                },
+              )
+            ],
           ),
         ],
       ),
