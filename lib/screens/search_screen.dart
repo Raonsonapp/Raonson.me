@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/search_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -8,97 +9,64 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  int selectedChip = 0;
-
-  final chips = ['All', 'Travel', 'Music', 'Food', 'Art'];
+  String query = "";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _SearchBar(),
+        title: TextField(
+          decoration: const InputDecoration(
+            hintText: "Search",
+            border: InputBorder.none,
+          ),
+          onChanged: (value) {
+            setState(() => query = value);
+          },
+        ),
       ),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 44,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              itemCount: chips.length,
-              itemBuilder: (context, index) {
-                final isActive = selectedChip == index;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(chips[index]),
-                    selected: isActive,
-                    onSelected: (_) {
-                      setState(() => selectedChip = index);
-                    },
-                    selectedColor: const Color(0xFF1E88E5),
-                    backgroundColor: Colors.white10,
-                    labelStyle: TextStyle(
-                      color: isActive ? Colors.white : Colors.white70,
-                    ),
+      body: query.isEmpty
+          ? const Center(child: Text("Search posts or users"))
+          : FutureBuilder<Map<String, dynamic>>(
+              future: SearchService.search(query),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(
+                      child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return const Center(
+                      child: Text("Search error"));
+                }
+
+                final data = snapshot.data!;
+                final posts = data["posts"] as List;
+
+                if (posts.isEmpty) {
+                  return const Center(child: Text("No results"));
+                }
+
+                return GridView.builder(
+                  padding: const EdgeInsets.all(4),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
                   ),
+                  itemCount: posts.length,
+                  itemBuilder: (context, index) {
+                    final post = posts[index];
+                    return Image.network(
+                      post["image"],
+                      fit: BoxFit.cover,
+                    );
+                  },
                 );
               },
             ),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.all(4),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-              ),
-              itemCount: mockGrid.length,
-              itemBuilder: (context, index) {
-                return Image.network(
-                  mockGrid[index],
-                  fit: BoxFit.cover,
-                );
-              },
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
-
-/* ---------------- SEARCH BAR ---------------- */
-
-class _SearchBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, size: 20),
-          SizedBox(width: 8),
-          Text(
-            'Search',
-            style: TextStyle(color: Colors.white70),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/* ---------------- MOCK DATA ---------------- */
-
-final mockGrid = List.generate(
-  30,
-  (i) => 'https://picsum.photos/300/300?random=${i + 20}',
-);
