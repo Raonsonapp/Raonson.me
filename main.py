@@ -103,3 +103,15 @@ async def list_posts():
         "count": len(POSTS),
         "posts": POSTS
                             }
+@app.post("/posts/{post_id}/like")
+async def like_post(post_id: str):
+    for post in POSTS:
+        if post.id == post_id:
+            post.likes += 1
+            return {
+                "message": "Post liked",
+                "post_id": post_id,
+                "likes": post.likes
+            }
+
+    raise HTTPException(status_code=404, detail="Post not found")
