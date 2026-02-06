@@ -1,11 +1,18 @@
-import 'api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'api.dart';
 
 class PostService {
   static Future<List<dynamic>> getPosts() async {
-    return await ApiService.get('/posts');
-  }
+    final response = await http.get(
+      Uri.parse("${Api.baseUrl}/posts"),
+      headers: {"Accept": "application/json"},
+    );
 
-  static Future<dynamic> likePost(int postId) {
-    return ApiService.post('/posts/$postId/like', {});
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load posts");
+    }
   }
 }
