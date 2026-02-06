@@ -1,9 +1,73 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
+from uuid import uuid4
+from typing import List
 from datetime import datetime
 import uuid
 
+# ===== IN-MEMORY DB =====
+POSTS_DB = {}
+COMMENTS_DB = {}
+
+# ===== MODELS =====
+class PostCreate(BaseModel):
+    caption: str
+    image_url: str
+
+class CommentCreate(BaseModel):
+    text: str
+
+# ===== POSTS =====
+@app.post("/posts")
+async def create_post(post: PostCreate):
+    post_id = str(uuid4())
+    POSTS_DB[post_id] = {
+        "id": post_id,
+        "caption": post.caption,
+        "image_url": post.image_url,
+        "likes": 0
+    }
+    COMMENTS_DB[post_id] = []
+    return POSTS_DB[post_id]
+
+@app.get("/posts")
+async def list_posts():
+    return list(POSTS_DB.values())
+
+@app.post("/posts/{post_id}/like")
+async def like_post(post_id: str):
+    if post_id not in POSTS_DB:
+        raise HTTPException(status_code=404, detail="Post not found")
+    POSTS_DB[post_id]["likes"] += 1
+    return {
+        "message": "Post liked",
+        "post_id": post_id,
+        "likes": POSTS_DB[post_id]["likes"]
+    }
+
+# ===== COMMENTS =====
+@app.post("/posts/{post_id}/comments")
+async def add_comment(post_id: str, comment: CommentCreate):
+    if post_id not in POSTS_DB:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    comment_data = {
+        "id": str(uuid4()),
+        "text": comment.text
+    }
+    COMMENTS_DB[post_id].append(comment_data)
+    return {
+        "message": "Comment added",
+        "comment": comment_data
+    }
+
+@app.get("/posts/{post_id}/comments")
+async def get_comments(post_id: str):
+    if post_id not in POSTS_DB:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    return COMMENTS_DB[post_id]
 app = FastAPI()
 
 # =====================
