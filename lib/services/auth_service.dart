@@ -1,25 +1,17 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'api_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  Future<User?> register(String email, String password) async {
-    final res = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return res.user;
+  static Future<dynamic> login(String username, String password) {
+    return ApiService.post('/auth/login', {
+      'username': username,
+      'password': password,
+    });
   }
 
-  Future<User?> login(String email, String password) async {
-    final res = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return res.user;
-  }
-
-  Future<void> logout() async {
-    await _auth.signOut();
+  static Future<dynamic> register(String username, String password) {
+    return ApiService.post('/auth/register', {
+      'username': username,
+      'password': password,
+    });
   }
 }
