@@ -1,48 +1,28 @@
 import 'package:flutter/material.dart';
-import '../core/auth_storage.dart';
-import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
-
-  Future<void> _logout(BuildContext context) async {
-    await AuthStorage.logout();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (route) => false,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ardamehr'),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'logout') {
-                _logout(context);
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'logout',
-                child: Text('Logout'),
-              ),
-            ],
-          ),
+        title: const Text('raonson'),
+        actions: const [
+          Icon(Icons.add_box_outlined),
+          SizedBox(width: 16),
+          Icon(Icons.menu),
+          SizedBox(width: 12),
         ],
       ),
       body: ListView(
         children: const [
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           _ProfileHeader(),
-          SizedBox(height: 20),
+          SizedBox(height: 16),
           _ProfileActions(),
-          SizedBox(height: 20),
-          Divider(color: Colors.white12),
+          SizedBox(height: 16),
+          Divider(height: 1),
           _PostsGrid(),
         ],
       ),
@@ -50,9 +30,7 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
-// =======================
-// PROFILE HEADER
-// =======================
+/* ---------------- HEADER ---------------- */
 
 class _ProfileHeader extends StatelessWidget {
   const _ProfileHeader();
@@ -71,13 +49,16 @@ class _ProfileHeader extends StatelessWidget {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Color(0xFF4FC3F7), Color(0xFF1E88E5)],
+                    colors: [
+                      Color(0xFF4FC3F7),
+                      Color(0xFF1E88E5),
+                    ],
                   ),
                 ),
                 child: const CircleAvatar(
                   radius: 38,
                   backgroundImage:
-                      NetworkImage('https://i.pravatar.cc/300'),
+                      NetworkImage('https://i.pravatar.cc/300?img=10'),
                 ),
               ),
               const SizedBox(width: 24),
@@ -93,20 +74,21 @@ class _ProfileHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Row(
             children: const [
               Text(
-                'Ardamehr',
+                'Raonson',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               SizedBox(width: 6),
-              Icon(Icons.verified, size: 18, color: Color(0xFF4FC3F7)),
+              Icon(Icons.verified,
+                  size: 18, color: Color(0xFF4FC3F7)),
             ],
           ),
           const SizedBox(height: 6),
-          Text(
-            'Founder of Raonson 💙\nBuilding something different.',
+          const Text(
+            'Building something different 💙\nWelcome to Raonson.',
             style: TextStyle(color: Colors.white70),
           ),
         ],
@@ -125,20 +107,24 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value,
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label,
-            style: const TextStyle(color: Colors.white60, fontSize: 12)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        ),
       ],
     );
   }
 }
 
-// =======================
-// ACTION BUTTONS
-// =======================
+/* ---------------- ACTIONS ---------------- */
 
 class _ProfileActions extends StatelessWidget {
   const _ProfileActions();
@@ -148,13 +134,19 @@ class _ProfileActions extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
-        children: [
+        children: const [
           Expanded(
-            child: _ActionButton(text: 'Edit Profile', filled: true),
+            child: _ActionButton(
+              text: 'Edit Profile',
+              filled: true,
+            ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
-            child: _ActionButton(text: 'Share Profile', filled: false),
+            child: _ActionButton(
+              text: 'Share Profile',
+              filled: false,
+            ),
           ),
         ],
       ),
@@ -171,20 +163,21 @@ class _ActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 40,
+      height: 38,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: filled ? const Color(0xFF1E88E5) : Colors.white10,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
 
-// =======================
-// POSTS GRID
-// =======================
+/* ---------------- POSTS GRID ---------------- */
 
 class _PostsGrid extends StatelessWidget {
   const _PostsGrid();
@@ -200,13 +193,20 @@ class _PostsGrid extends StatelessWidget {
         mainAxisSpacing: 4,
         crossAxisSpacing: 4,
       ),
-      itemCount: 24,
+      itemCount: mockPosts.length,
       itemBuilder: (context, index) {
         return Image.network(
-          'https://picsum.photos/id/${index + 10}/400/400',
+          mockPosts[index],
           fit: BoxFit.cover,
         );
       },
     );
   }
 }
+
+/* ---------------- MOCK DATA ---------------- */
+
+final mockPosts = List.generate(
+  24,
+  (i) => 'https://picsum.photos/400/400?random=${i + 50}',
+);
