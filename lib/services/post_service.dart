@@ -5,10 +5,7 @@ class PostService {
     return await ApiService.get('/posts');
   }
 
-  static Future<dynamic> createPost(String caption, String imageUrl) {
-    return ApiService.post('/posts', {
-      'caption': caption,
-      'image_url': imageUrl,
-    });
+  static Future<dynamic> likePost(int postId) {
+    return ApiService.post('/posts/$postId/like', {});
   }
 }
