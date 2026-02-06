@@ -1,68 +1,41 @@
 import 'package:flutter/material.dart';
-import 'core/auth_storage.dart';
-import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'theme/app_theme.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/search/search_screen.dart';
+import 'screens/chat/chat_screen.dart';
+import 'screens/profile/profile_screen.dart';
 
-void main() {
-  runApp(const RaonsonApp());
+void main() => runApp(const RaonsonApp());
+
+class RaonsonApp extends StatefulWidget {
+  const RaonsonApp({super.key});
+  @override
+  State<RaonsonApp> createState() => _RaonsonAppState();
 }
 
-class RaonsonApp extends StatelessWidget {
-  const RaonsonApp({super.key});
+class _RaonsonAppState extends State<RaonsonApp> {
+  int i = 0;
+  final pages = const [
+    HomeScreen(),
+    SearchScreen(),
+    ChatScreen(),
+    ProfileScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Raonson',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      home: const SplashDecider(),
-    );
-  }
-}
-
-// =======================
-// DECIDE LOGIN OR HOME
-// =======================
-
-class SplashDecider extends StatefulWidget {
-  const SplashDecider({super.key});
-
-  @override
-  State<SplashDecider> createState() => _SplashDeciderState();
-}
-
-class _SplashDeciderState extends State<SplashDecider> {
-  @override
-  void initState() {
-    super.initState();
-    _checkAuth();
-  }
-
-  Future<void> _checkAuth() async {
-    final token = await AuthStorage.getToken();
-
-    if (!mounted) return;
-
-    if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
+      home: Scaffold(
+        body: pages[i],
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: i,
+          onTap: (v) => setState(() => i = v),
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+            BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+            BottomNavigationBarItem(icon: Icon(Icons.chat), label: "Chat"),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          ],
+        ),
       ),
     );
   }
