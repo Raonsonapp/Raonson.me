@@ -1,28 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/post_service.dart';
-import 'comments_screen.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  late Future<List<dynamic>> _postsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _postsFuture = PostService.getPosts();
-  }
-
-  Future<void> _refresh() async {
-    setState(() {
-      _postsFuture = PostService.getPosts();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,72 +9,31 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Raonson'),
         actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.add_box_outlined),
-          ),
+          Icon(Icons.add_box_outlined),
+          SizedBox(width: 16),
+          Icon(Icons.send_outlined),
+          SizedBox(width: 12),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: FutureBuilder<List<dynamic>>(
-          future: _postsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-
-            if (snapshot.hasError) {
-              return const Center(
-                child: Text(
-                  'Failed to load posts',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              );
-            }
-
-            final posts = snapshot.data ?? [];
-
-            if (posts.isEmpty) {
-              return const Center(
-                child: Text(
-                  'No posts yet',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: posts.length + 1,
+      body: Column(
+        children: [
+          const _StoriesBar(),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.builder(
+              itemCount: mockPosts.length,
               itemBuilder: (context, index) {
-                if (index == 0) {
-                  return const _StoriesBar();
-                }
-
-                final post = posts[index - 1];
-
-                return PostCard(
-                  postId: post['id'],
-                  caption: post['caption'] ?? '',
-                  imageUrl: post['image_url'] ?? '',
-                );
+                return _PostCard(post: mockPosts[index]);
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-//
-// =======================
-// STORIES BAR
-// =======================
-//
+/* ---------------- STORIES ---------------- */
 
 class _StoriesBar extends StatelessWidget {
   const _StoriesBar();
@@ -103,37 +41,37 @@ class _StoriesBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 105,
+      height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: 10,
+        itemCount: mockStories.length,
         itemBuilder: (context, index) {
+          final story = mockStories[index];
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.only(right: 12, top: 10),
             child: Column(
               children: [
                 Container(
                   padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [
                         Color(0xFF4FC3F7),
                         Color(0xFF1E88E5),
                       ],
                     ),
                   ),
-                  child: const CircleAvatar(
+                  child: CircleAvatar(
                     radius: 28,
-                    backgroundImage:
-                        NetworkImage('https://i.pravatar.cc/150'),
+                    backgroundImage: NetworkImage(story.avatar),
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'user',
-                  style: TextStyle(fontSize: 12),
+                Text(
+                  story.username,
+                  style: const TextStyle(fontSize: 12),
                 ),
               ],
             ),
@@ -144,48 +82,12 @@ class _StoriesBar extends StatelessWidget {
   }
 }
 
-//
-// =======================
-// POST CARD (SAFE VERSION)
-// =======================
-//
+/* ---------------- POST CARD ---------------- */
 
-class PostCard extends StatefulWidget {
-  final int postId;
-  final String caption;
-  final String imageUrl;
+class _PostCard extends StatelessWidget {
+  final Post post;
 
-  const PostCard({
-    super.key,
-    required this.postId,
-    required this.caption,
-    required this.imageUrl,
-  });
-
-  @override
-  State<PostCard> createState() => _PostCardState();
-}
-
-class _PostCardState extends State<PostCard> {
-  bool liked = false;
-  bool loadingLike = false;
-
-  Future<void> _like() async {
-    if (loadingLike) return;
-
-    setState(() {
-      liked = true;
-      loadingLike = true;
-    });
-
-    try {
-      await PostService.likePost(widget.postId);
-    } catch (_) {
-      setState(() => liked = false);
-    } finally {
-      loadingLike = false;
-    }
-  }
+  const _PostCard({required this.post});
 
   @override
   Widget build(BuildContext context) {
@@ -193,75 +95,102 @@ class _PostCardState extends State<PostCard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ListTile(
-          leading: const CircleAvatar(
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150'),
+          leading: CircleAvatar(
+            backgroundImage: NetworkImage(post.avatar),
           ),
-          title: const Text('ardamehr'),
+          title: Text(
+            post.username,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           trailing: const Icon(Icons.more_vert),
         ),
-
-        widget.imageUrl.isNotEmpty
-            ? Image.network(
-                widget.imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _imagePlaceholder(),
-              )
-            : _imagePlaceholder(),
-
+        Image.network(
+          post.image,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: 300,
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
-            children: [
-              GestureDetector(
-                onTap: _like,
-                child: Icon(
-                  liked ? Icons.favorite : Icons.favorite_border,
-                  color: liked ? Colors.pinkAccent : Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 16),
-              IconButton(
-                icon: const Icon(Icons.chat_bubble_outline),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          CommentsScreen(postId: widget.postId),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.send),
-              const Spacer(),
-              const Icon(Icons.bookmark_border),
+            children: const [
+              Icon(Icons.favorite_border),
+              SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline),
+              SizedBox(width: 16),
+              Icon(Icons.send),
+              Spacer(),
+              Icon(Icons.bookmark_border),
             ],
           ),
         ),
-
-        if (widget.caption.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              widget.caption,
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            '${post.username} ${post.caption}',
+            style: const TextStyle(fontWeight: FontWeight.w500),
           ),
-
-        const SizedBox(height: 20),
+        ),
+        const SizedBox(height: 4),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            post.time,
+            style: const TextStyle(color: Colors.white60, fontSize: 12),
+          ),
+        ),
+        const SizedBox(height: 12),
       ],
     );
   }
-
-  Widget _imagePlaceholder() {
-    return Container(
-      height: 300,
-      color: Colors.white10,
-      child: const Center(
-        child: Icon(Icons.image, size: 40),
-      ),
-    );
-  }
 }
+
+/* ---------------- MOCK DATA ---------------- */
+
+class Story {
+  final String username;
+  final String avatar;
+
+  Story(this.username, this.avatar);
+}
+
+class Post {
+  final String username;
+  final String avatar;
+  final String image;
+  final String caption;
+  final String time;
+
+  Post({
+    required this.username,
+    required this.avatar,
+    required this.image,
+    required this.caption,
+    required this.time,
+  });
+}
+
+final mockStories = [
+  Story('you', 'https://i.pravatar.cc/150?img=1'),
+  Story('alex', 'https://i.pravatar.cc/150?img=2'),
+  Story('lina', 'https://i.pravatar.cc/150?img=3'),
+  Story('mark', 'https://i.pravatar.cc/150?img=4'),
+  Story('sara', 'https://i.pravatar.cc/150?img=5'),
+];
+
+final mockPosts = [
+  Post(
+    username: 'alex',
+    avatar: 'https://i.pravatar.cc/150?img=2',
+    image: 'https://picsum.photos/600/600?random=1',
+    caption: 'enjoying the blue vibes 💙',
+    time: '2 hours ago',
+  ),
+  Post(
+    username: 'lina',
+    avatar: 'https://i.pravatar.cc/150?img=3',
+    image: 'https://picsum.photos/600/600?random=2',
+    caption: 'life is better at night ✨',
+    time: '5 hours ago',
+  ),
+];
