@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../services/chat_service.dart';
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
+
+  final int userId = 1; // v1: static, v2 -> from auth token
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chats'),
+        title: const Text("Chats"),
         actions: const [
           Icon(Icons.video_call_outlined),
           SizedBox(width: 16),
@@ -15,58 +18,30 @@ class ChatScreen extends StatelessWidget {
           SizedBox(width: 12),
         ],
       ),
-      body: Column(
-        children: [
-          const _NotesBar(),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
-              itemCount: mockChats.length,
-              itemBuilder: (context, index) {
-                return _ChatTile(chat: mockChats[index]);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+      body: FutureBuilder<List<dynamic>>(
+        future: ChatService.getChats(userId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-/* ---------------- NOTES BAR ---------------- */
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading chats"));
+          }
 
-class _NotesBar extends StatelessWidget {
-  const _NotesBar();
+          final chats = snapshot.data!;
+          if (chats.isEmpty) {
+            return const Center(child: Text("No chats yet"));
+          }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 90,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: mockNotes.length,
-        itemBuilder: (context, index) {
-          final note = mockNotes[index];
-          return Padding(
-            padding: const EdgeInsets.only(right: 12, top: 12),
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: const Color(0xFF1E88E5),
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundImage: NetworkImage(note.avatar),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  note.text,
-                  style: const TextStyle(fontSize: 11),
-                ),
-              ],
-            ),
+          return ListView.separated(
+            itemCount: chats.length,
+            separatorBuilder: (_, __) =>
+                const Divider(height: 1, color: Colors.white12),
+            itemBuilder: (context, index) {
+              final chat = chats[index];
+              return _ChatTile(chat: chat);
+            },
           );
         },
       ),
@@ -74,88 +49,43 @@ class _NotesBar extends StatelessWidget {
   }
 }
 
-/* ---------------- CHAT TILE ---------------- */
+/* ---------------- SINGLE CHAT TILE ---------------- */
 
 class _ChatTile extends StatelessWidget {
-  final Chat chat;
+  final Map<String, dynamic> chat;
 
   const _ChatTile({required this.chat});
 
   @override
   Widget build(BuildContext context) {
+    final fromUser = chat["from_user"];
+    final toUser = chat["to_user"];
+    final message = chat["message"] ?? "";
+
     return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: NetworkImage(chat.avatar),
+      leading: const CircleAvatar(
         radius: 24,
+        backgroundImage: NetworkImage(
+          "https://i.pravatar.cc/150?img=12",
+        ),
       ),
       title: Text(
-        chat.username,
+        "User $fromUser",
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        chat.lastMessage,
+        message,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: const TextStyle(color: Colors.white70),
       ),
-      trailing: Text(
-        chat.time,
-        style: const TextStyle(color: Colors.white54, fontSize: 12),
+      trailing: const Text(
+        "now",
+        style: TextStyle(fontSize: 12, color: Colors.white54),
       ),
       onTap: () {
-        // Later: open chat detail screen
+        // v2: open chat detail screen
       },
     );
   }
 }
-
-/* ---------------- MOCK DATA ---------------- */
-
-class Note {
-  final String avatar;
-  final String text;
-
-  Note(this.avatar, this.text);
-}
-
-class Chat {
-  final String username;
-  final String avatar;
-  final String lastMessage;
-  final String time;
-
-  Chat({
-    required this.username,
-    required this.avatar,
-    required this.lastMessage,
-    required this.time,
-  });
-}
-
-final mockNotes = [
-  Note('https://i.pravatar.cc/150?img=1', 'Hi 👋'),
-  Note('https://i.pravatar.cc/150?img=2', 'Music 🎵'),
-  Note('https://i.pravatar.cc/150?img=3', 'Busy'),
-  Note('https://i.pravatar.cc/150?img=4', 'At work'),
-];
-
-final mockChats = [
-  Chat(
-    username: 'alex',
-    avatar: 'https://i.pravatar.cc/150?img=2',
-    lastMessage: 'Let’s meet tonight',
-    time: '2m',
-  ),
-  Chat(
-    username: 'lina',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    lastMessage: 'Send me the photo',
-    time: '15m',
-  ),
-  Chat(
-    username: 'mark',
-    avatar: 'https://i.pravatar.cc/150?img=4',
-    lastMessage: 'Okay 👍',
-    time: '1h',
-  ),
-];
