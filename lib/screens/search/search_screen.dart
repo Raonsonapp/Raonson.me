@@ -21,10 +21,7 @@ class SearchScreen extends StatelessWidget {
             children: [
               Icon(Icons.search, color: Colors.white54),
               SizedBox(width: 8),
-              Text(
-                'Search',
-                style: TextStyle(color: Colors.white54),
-              ),
+              Text('Search', style: TextStyle(color: Colors.white54)),
             ],
           ),
         ),
@@ -37,15 +34,11 @@ class SearchScreen extends StatelessWidget {
           crossAxisSpacing: 2,
           mainAxisSpacing: 2,
         ),
-        itemBuilder: (context, index) {
+        itemBuilder: (context, i) {
           return Container(
             color: Colors.white10,
             child: const Center(
-              child: Icon(
-                Icons.image,
-                color: Colors.white24,
-                size: 40,
-              ),
+              child: Icon(Icons.image, color: Colors.white24),
             ),
           );
         },
