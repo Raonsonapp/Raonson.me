@@ -9,27 +9,20 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final usernameCtrl = TextEditingController();
-  final passwordCtrl = TextEditingController();
-  bool loading = false;
-  String? message;
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  String error = '';
 
-  Future<void> register() async {
-    setState(() {
-      loading = true;
-      message = null;
-    });
+  void handleRegister() async {
+    final success = await AuthService.register(
+      usernameController.text,
+      passwordController.text,
+    );
 
-    try {
-      await AuthService.register(
-        usernameCtrl.text,
-        passwordCtrl.text,
-      );
-      setState(() => message = 'Account created. Go back to login.');
-    } catch (_) {
-      setState(() => message = 'Register failed');
-    } finally {
-      setState(() => loading = false);
+    if (success) {
+      Navigator.pop(context); // бармегардад ба Login
+    } else {
+      setState(() => error = 'Registration failed');
     }
   }
 
@@ -38,36 +31,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Register')),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             TextField(
-              controller: usernameCtrl,
+              controller: usernameController,
               decoration: const InputDecoration(labelText: 'Username'),
             ),
-            const SizedBox(height: 12),
             TextField(
-              controller: passwordCtrl,
-              decoration: const InputDecoration(labelText: 'Password'),
+              controller: passwordController,
               obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
             const SizedBox(height: 20),
-            if (message != null)
-              Text(
-                message!,
-                style: TextStyle(
-                  color: message!.contains('created')
-                      ? Colors.green
-                      : Colors.red,
-                ),
-              ),
-            const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: loading ? null : register,
-              child: loading
-                  ? const CircularProgressIndicator()
-                  : const Text('Register'),
+              onPressed: handleRegister,
+              child: const Text('Register'),
             ),
+            if (error.isNotEmpty)
+              Text(error, style: const TextStyle(color: Colors.red)),
           ],
         ),
       ),
