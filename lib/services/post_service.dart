@@ -1,18 +1,27 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'api.dart';
+import '../config/api.dart';
+import 'auth_service.dart';
 
 class PostService {
-  static Future<List<dynamic>> getPosts() async {
-    final response = await http.get(
-      Uri.parse("${Api.baseUrl}/posts"),
-      headers: {"Accept": "application/json"},
+  static Future<List> getFeed() async {
+    final res = await http.get(
+      Uri.parse("$baseUrl/posts/feed"),
     );
+    return jsonDecode(res.body);
+  }
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception("Failed to load posts");
-    }
+  static Future<void> createPost(String imageUrl, String caption) async {
+    await http.post(
+      Uri.parse("$baseUrl/posts/"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": AuthService.token!,
+      },
+      body: jsonEncode({
+        "image_url": imageUrl,
+        "caption": caption,
+      }),
+    );
   }
 }
