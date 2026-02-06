@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/reel_service.dart';
 
 class ReelsScreen extends StatelessWidget {
   const ReelsScreen({super.key});
@@ -6,21 +7,40 @@ class ReelsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: mockReels.length,
-        itemBuilder: (context, index) {
-          return _ReelItem(reel: mockReels[index]);
+      body: FutureBuilder<List<dynamic>>(
+        future: ReelService.getReels(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return const Center(child: Text("Error loading reels"));
+          }
+
+          final reels = snapshot.data!;
+          if (reels.isEmpty) {
+            return const Center(child: Text("No reels yet"));
+          }
+
+          return PageView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: reels.length,
+            itemBuilder: (context, index) {
+              final reel = reels[index];
+              return _ReelItem(reel: reel);
+            },
+          );
         },
       ),
     );
   }
 }
 
-/* ---------------- REEL ITEM ---------------- */
+/* ---------------- SINGLE REEL ---------------- */
 
 class _ReelItem extends StatelessWidget {
-  final Reel reel;
+  final Map<String, dynamic> reel;
 
   const _ReelItem({required this.reel});
 
@@ -28,27 +48,27 @@ class _ReelItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Background (video placeholder)
+        // Background (placeholder image for v1)
         Positioned.fill(
           child: Image.network(
-            reel.image,
+            "https://picsum.photos/600/1000?random=${reel['id']}",
             fit: BoxFit.cover,
           ),
         ),
 
-        // Right actions
+        // Right side actions
         Positioned(
           right: 12,
           bottom: 120,
           child: Column(
             children: const [
-              _ActionIcon(icon: Icons.favorite_border, label: '12.4K'),
+              _ActionIcon(icon: Icons.favorite_border, label: 'Like'),
               SizedBox(height: 20),
-              _ActionIcon(icon: Icons.chat_bubble_outline, label: '842'),
+              _ActionIcon(icon: Icons.chat_bubble_outline, label: 'Comment'),
               SizedBox(height: 20),
-              _ActionIcon(icon: Icons.send, label: ''),
+              _ActionIcon(icon: Icons.send, label: 'Share'),
               SizedBox(height: 20),
-              _ActionIcon(icon: Icons.bookmark_border, label: ''),
+              _ActionIcon(icon: Icons.bookmark_border, label: 'Save'),
             ],
           ),
         ),
@@ -57,32 +77,33 @@ class _ReelItem extends StatelessWidget {
         Positioned(
           left: 12,
           right: 90,
-          bottom: 30,
+          bottom: 40,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: [
+                children: const [
                   CircleAvatar(
                     radius: 18,
-                    backgroundImage: NetworkImage(reel.avatar),
+                    backgroundImage:
+                        NetworkImage("https://i.pravatar.cc/150?img=1"),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Text(
-                    reel.username,
-                    style: const TextStyle(
+                    "user",
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.verified,
+                  SizedBox(width: 6),
+                  Icon(Icons.verified,
                       size: 16, color: Color(0xFF4FC3F7)),
                 ],
               ),
               const SizedBox(height: 8),
               Text(
-                reel.caption,
+                reel['caption'] ?? '',
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 14),
@@ -115,51 +136,12 @@ class _ActionIcon extends StatelessWidget {
           ),
           child: Icon(icon, size: 28),
         ),
-        if (label.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12),
-          ),
-        ]
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12),
+        ),
       ],
     );
   }
 }
-
-/* ---------------- MOCK DATA ---------------- */
-
-class Reel {
-  final String username;
-  final String avatar;
-  final String image;
-  final String caption;
-
-  Reel({
-    required this.username,
-    required this.avatar,
-    required this.image,
-    required this.caption,
-  });
-}
-
-final mockReels = [
-  Reel(
-    username: 'alex',
-    avatar: 'https://i.pravatar.cc/150?img=2',
-    image: 'https://picsum.photos/600/1000?random=10',
-    caption: 'Night vibes 💙 #raonson',
-  ),
-  Reel(
-    username: 'lina',
-    avatar: 'https://i.pravatar.cc/150?img=3',
-    image: 'https://picsum.photos/600/1000?random=11',
-    caption: 'Dream big ✨',
-  ),
-  Reel(
-    username: 'mark',
-    avatar: 'https://i.pravatar.cc/150?img=4',
-    image: 'https://picsum.photos/600/1000?random=12',
-    caption: 'Life in motion 🔥',
-  ),
-];
