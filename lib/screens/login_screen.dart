@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../core/auth_storage.dart';
 import 'register_screen.dart';
 import 'home_screen.dart';
 
@@ -12,37 +11,23 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final usernameCtrl = TextEditingController();
-  final passwordCtrl = TextEditingController();
-  bool loading = false;
-  String? error;
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
+  String error = '';
 
-  Future<void> login() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
+  void handleLogin() async {
+    final success = await AuthService.login(
+      usernameController.text,
+      passwordController.text,
+    );
 
-    try {
-      final res = await AuthService.login(
-        usernameCtrl.text,
-        passwordCtrl.text,
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
-
-      final token = res['token'];
-      if (token != null) {
-        await AuthStorage.saveToken(token);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
-        setState(() => error = 'Invalid response');
-      }
-    } catch (_) {
+    } else {
       setState(() => error = 'Login failed');
-    } finally {
-      setState(() => loading = false);
     }
   }
 
@@ -54,37 +39,28 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Raonson',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
+            const Text('Raonson', style: TextStyle(fontSize: 28)),
             TextField(
-              controller: usernameCtrl,
+              controller: usernameController,
               decoration: const InputDecoration(labelText: 'Username'),
             ),
-            const SizedBox(height: 12),
             TextField(
-              controller: passwordCtrl,
-              decoration: const InputDecoration(labelText: 'Password'),
+              controller: passwordController,
               obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
             const SizedBox(height: 20),
-            if (error != null)
-              Text(error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: loading ? null : login,
-              child: loading
-                  ? const CircularProgressIndicator()
-                  : const Text('Login'),
+              onPressed: handleLogin,
+              child: const Text('Login'),
             ),
+            if (error.isNotEmpty)
+              Text(error, style: const TextStyle(color: Colors.red)),
             TextButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const RegisterScreen()),
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
                 );
               },
               child: const Text('Create account'),
