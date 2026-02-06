@@ -10,76 +10,41 @@ class ReelsScreen extends StatelessWidget {
       body: PageView.builder(
         scrollDirection: Axis.vertical,
         itemCount: 5,
-        itemBuilder: (context, index) {
-          return _reelItem(index);
-        },
+        itemBuilder: (context, i) => _reel(),
       ),
     );
   }
 
-  Widget _reelItem(int index) {
+  Widget _reel() {
     return Stack(
       children: [
-        // -------- VIDEO PLACEHOLDER --------
-        Container(
-          color: Colors.black,
-          child: const Center(
-            child: Icon(
-              Icons.play_arrow,
-              size: 100,
-              color: Colors.white24,
-            ),
-          ),
+        const Center(
+          child: Icon(Icons.play_arrow, size: 100, color: Colors.white24),
         ),
-
-        // -------- RIGHT ACTIONS --------
         Positioned(
           right: 12,
           bottom: 100,
           child: Column(
             children: const [
-              _ReelAction(icon: Icons.favorite_border, label: '12k'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.chat_bubble_outline, label: '234'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.send, label: 'Share'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.bookmark_border, label: ''),
+              _Action(Icons.favorite_border, '12k'),
+              SizedBox(height: 22),
+              _Action(Icons.chat_bubble_outline, '320'),
+              SizedBox(height: 22),
+              _Action(Icons.send, ''),
+              SizedBox(height: 22),
+              _Action(Icons.bookmark_border, ''),
             ],
           ),
         ),
-
-        // -------- USER INFO --------
         Positioned(
           left: 12,
           bottom: 24,
-          right: 90,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 14,
-                    child: Icon(Icons.person, size: 16),
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'username',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Text(
-                'This is reel caption ✨',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 13),
-              ),
+              Text('username', style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 6),
+              Text('Reels caption ✨', maxLines: 2),
             ],
           ),
         ),
@@ -88,29 +53,18 @@ class ReelsScreen extends StatelessWidget {
   }
 }
 
-// -------- ACTION WIDGET --------
-class _ReelAction extends StatelessWidget {
+class _Action extends StatelessWidget {
   final IconData icon;
   final String label;
-
-  const _ReelAction({
-    required this.icon,
-    required this.label,
-  });
+  const _Action(this.icon, this.label);
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 30),
+        Icon(icon, size: 32),
         if (label.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
+          Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }
