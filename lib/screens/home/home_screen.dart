@@ -1,5 +1,31 @@
 import 'package:flutter/material.dart';
+import '../../services/post_service.dart';
+import '../../models/post_model.dart';
 
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<PostModel> posts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    final data = await PostService.fetchPosts();
+    setState(() => posts = data);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // UI ҳамон мемонад
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
