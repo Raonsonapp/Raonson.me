@@ -21,28 +21,28 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
-      # 1️⃣ Сохтани Flutter project бо номи дуруст
-      - name: Create Flutter project (Raonson)
+      # 1️⃣ Flutter project (package name lowercase)
+      - name: Create Flutter project
         run: |
-          flutter create Raonson
+          flutter create raonson
 
-      # 2️⃣ Гузаронидани коди ту
+      # 2️⃣ Copy your code
       - name: Copy source code
         run: |
-          rm -rf Raonson/lib
-          cp -r lib Raonson/lib
-          cp pubspec.yaml Raonson/pubspec.yaml
+          rm -rf raonson/lib
+          cp -r lib raonson/lib
+          cp pubspec.yaml raonson/pubspec.yaml
 
-      # 3️⃣ Dependency
+      # 3️⃣ Get deps
       - name: Get dependencies
         run: |
-          cd Raonson
+          cd raonson
           flutter pub get
 
       # 4️⃣ Build APK
-      - name: Build APK (release)
+      - name: Build APK
         run: |
-          cd Raonson
+          cd raonson
           flutter build apk --release
 
       # 5️⃣ Upload
@@ -50,4 +50,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Raonson-APK
-          path: Raonson/build/app/outputs/flutter-apk/app-release.apk
+          path: raonson/build/app/outputs/flutter-apk/app-release.apk
