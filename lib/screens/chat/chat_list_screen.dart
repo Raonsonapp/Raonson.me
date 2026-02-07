@@ -1,35 +1,8 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
-import '../../core/api.dart';
-import '../../core/http_client.dart';
 
-class ChatListScreen extends StatefulWidget {
+class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
-
-  @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
-}
-
-class _ChatListScreenState extends State<ChatListScreen> {
-  List chats = [];
-  bool loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    loadChats();
-  }
-
-  Future<void> loadChats() async {
-    final data = await HttpClient.get(
-      '${ApiConfig.baseUrl}/chat',
-    );
-
-    setState(() {
-      chats = data;
-      loading = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,40 +11,59 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: const Text('Chats'),
+        title: const Text(
+          'Raonson',
+          style: TextStyle(
+            color: Colors.blueAccent,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: const [
+          Icon(Icons.search, color: Colors.white),
+          SizedBox(width: 12),
+        ],
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (c, i) {
-                final chat = chats[i];
-                return ListTile(
-                  leading: const CircleAvatar(
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.person, color: Colors.white),
-                  ),
-                  title: Text(
-                    chat['username'],
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    chat['last_message'] ?? '',
-                    style: const TextStyle(color: Colors.white54),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ChatScreen(
-                          username: chat['username'],
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
+      body: ListView.builder(
+        itemCount: 12,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [Colors.blueAccent, Colors.lightBlue],
+                ),
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Color(0xFF0B0F1A),
+                child: Icon(Icons.person, color: Colors.white),
+              ),
             ),
+            title: const Text(
+              'username',
+              style: TextStyle(color: Colors.white),
+            ),
+            subtitle: const Text(
+              'Last message preview...',
+              style: TextStyle(color: Colors.white54),
+            ),
+            trailing: const Text(
+              '12:45',
+              style: TextStyle(color: Colors.white38, fontSize: 12),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ChatScreen(),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
