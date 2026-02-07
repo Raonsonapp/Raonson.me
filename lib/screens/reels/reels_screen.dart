@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../models/post_model.dart';
+import '../../services/post_service.dart';
 
-/// ===============================
-/// REELS SCREEN – RAONSON v2
-/// Fullscreen vertical reels
-/// ===============================
+/// =======================================
+/// REELS SCREEN – RAONSON v2 (FULL)
+/// =======================================
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -13,48 +14,59 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
-  final PageController _pageController = PageController();
-
-  final List<_ReelData> reels = List.generate(
-    6,
-    (i) => _ReelData(
-      username: 'reel_user$i',
-      caption: 'This is Raonson reel caption number $i',
-      likes: 3400 + i * 211,
-    ),
-  );
+  final PageController _controller = PageController();
+  List<PostModel> reels = [];
+  bool loading = true;
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadReels();
+  }
+
+  Future<void> _loadReels() async {
+    try {
+      // айни ҳол аз ҳамон posts мегирем (ба reels endpoint иваз мешавад)
+      final data = await PostService.getPosts();
+      setState(() {
+        reels = data;
+        loading = false;
+      });
+    } catch (e) {
+      setState(() => loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: PageView.builder(
-        controller: _pageController,
+        controller: _controller,
         scrollDirection: Axis.vertical,
         itemCount: reels.length,
         itemBuilder: (context, index) {
-          return _ReelItem(
-            data: reels[index],
-          );
+          return _ReelItem(post: reels[index]);
         },
       ),
     );
   }
 }
 
-/// ===============================
+/// =======================================
 /// SINGLE REEL ITEM
-/// ===============================
-class _ReelItem extends StatefulWidget {
-  final _ReelData data;
+/// =======================================
 
-  const _ReelItem({required this.data});
+class _ReelItem extends StatefulWidget {
+  final PostModel post;
+  const _ReelItem({required this.post});
 
   @override
   State<_ReelItem> createState() => _ReelItemState();
@@ -71,31 +83,28 @@ class _ReelItemState extends State<_ReelItem> {
         _videoPlaceholder(),
         _rightActions(),
         _bottomInfo(),
-        _topOverlay(),
       ],
     );
   }
 
   // -------------------------------
-  // VIDEO PLACEHOLDER
+  // VIDEO (PLACEHOLDER)
   // -------------------------------
   Widget _videoPlaceholder() {
     return Container(
-      width: double.infinity,
-      height: double.infinity,
       color: Colors.black,
       child: const Center(
         child: Icon(
-          Icons.play_arrow,
+          Icons.play_circle_outline,
           size: 90,
-          color: Colors.white24,
+          color: Colors.white30,
         ),
       ),
     );
   }
 
   // -------------------------------
-  // RIGHT ACTIONS (LIKE, COMMENT...)
+  // RIGHT ACTIONS
   // -------------------------------
   Widget _rightActions() {
     return Positioned(
@@ -103,33 +112,32 @@ class _ReelItemState extends State<_ReelItem> {
       bottom: 120,
       child: Column(
         children: [
-          _actionButton(
+          _iconButton(
             icon: liked ? Icons.favorite : Icons.favorite_border,
-            color: liked ? Colors.redAccent : Colors.white,
-            label: widget.data.likes.toString(),
-            onTap: () {
+            label: widget.post.likes.toString(),
+            color: liked ? Colors.red : Colors.white,
+            onTap: () async {
+              await PostService.like(widget.post.id);
               setState(() {
                 liked = !liked;
-                widget.data.likes += liked ? 1 : -1;
+                widget.post.likes++;
               });
             },
           ),
-          const SizedBox(height: 20),
-          _actionButton(
+          const SizedBox(height: 18),
+          _iconButton(
             icon: Icons.chat_bubble_outline,
             label: 'Comment',
-            onTap: () {
-              _openComments(context);
-            },
+            onTap: () {},
           ),
-          const SizedBox(height: 20),
-          _actionButton(
+          const SizedBox(height: 18),
+          _iconButton(
             icon: Icons.send,
             label: 'Share',
             onTap: () {},
           ),
-          const SizedBox(height: 20),
-          _actionButton(
+          const SizedBox(height: 18),
+          _iconButton(
             icon: saved ? Icons.bookmark : Icons.bookmark_border,
             label: 'Save',
             onTap: () {
@@ -141,7 +149,7 @@ class _ReelItemState extends State<_ReelItem> {
     );
   }
 
-  Widget _actionButton({
+  Widget _iconButton({
     required IconData icon,
     required String label,
     Color color = Colors.white,
@@ -151,8 +159,8 @@ class _ReelItemState extends State<_ReelItem> {
       onTap: onTap,
       child: Column(
         children: [
-          Icon(icon, size: 32, color: color),
-          const SizedBox(height: 6),
+          Icon(icon, color: color, size: 30),
+          const SizedBox(height: 4),
           Text(
             label,
             style: const TextStyle(fontSize: 12),
@@ -163,13 +171,13 @@ class _ReelItemState extends State<_ReelItem> {
   }
 
   // -------------------------------
-  // BOTTOM INFO (USERNAME, CAPTION)
+  // BOTTOM INFO
   // -------------------------------
   Widget _bottomInfo() {
     return Positioned(
       left: 12,
+      bottom: 24,
       right: 80,
-      bottom: 30,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -182,16 +190,17 @@ class _ReelItemState extends State<_ReelItem> {
               ),
               const SizedBox(width: 8),
               Text(
-                widget.data.username,
+                widget.post.username,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 15,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            widget.data.caption,
+            widget.post.caption,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(color: Colors.white70),
@@ -200,97 +209,4 @@ class _ReelItemState extends State<_ReelItem> {
       ),
     );
   }
-
-  // -------------------------------
-  // TOP OVERLAY (OPTIONAL)
-  // -------------------------------
-  Widget _topOverlay() {
-    return Positioned(
-      top: 40,
-      left: 12,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.black54,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Text(
-          'Reels',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------
-  // COMMENTS (BOTTOM SHEET)
-  // -------------------------------
-  void _openComments(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF0B0F1A),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets,
-          child: Container(
-            height: 360,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                const Text(
-                  'Comments',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: 6,
-                    itemBuilder: (context, index) {
-                      return const ListTile(
-                        leading: CircleAvatar(
-                          child: Icon(Icons.person),
-                        ),
-                        title: Text('user'),
-                        subtitle: Text('Nice reel 🔥'),
-                      );
-                    },
-                  ),
-                ),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: 'Add a comment...',
-                    filled: true,
-                    fillColor: Colors.white10,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-/// ===============================
-/// REEL DATA MODEL
-/// ===============================
-class _ReelData {
-  final String username;
-  final String caption;
-  int likes;
-
-  _ReelData({
-    required this.username,
-    required this.caption,
-    required this.likes,
-  });
 }
