@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/post_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,61 +11,33 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: const Text(
-          'Raonson',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        actions: const [
-          Icon(Icons.add_box_outlined),
-          SizedBox(width: 16),
-          Icon(Icons.favorite_border),
-          SizedBox(width: 16),
-        ],
+        title: const Text('Raonson'),
       ),
-      body: ListView(
-        children: [
-          _stories(),
-          const Divider(color: Colors.white12),
-          _post('user_one', 'Beautiful day ✨'),
-          _post('user_two', 'Raonson v2 UI 🔥'),
-        ],
-      ),
-    );
-  }
+      body: FutureBuilder<List>(
+        future: PostService.getFeed(),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-  Widget _stories() {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: 8,
-        itemBuilder: (context, i) {
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Column(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Colors.blue, Colors.purple],
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(3),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.black,
-                      child: Icon(Icons.person),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text('user$i', style: const TextStyle(fontSize: 12)),
-              ],
-            ),
+          if (snap.hasError) {
+            return const Center(child: Text('Failed to load feed'));
+          }
+
+          final posts = snap.data!;
+          if (posts.isEmpty) {
+            return const Center(child: Text('No posts yet'));
+          }
+
+          return ListView.builder(
+            itemCount: posts.length,
+            itemBuilder: (context, i) {
+              final p = posts[i];
+              return _post(
+                p['username'] ?? 'user',
+                p['caption'] ?? '',
+              );
+            },
           );
         },
       ),
@@ -91,29 +64,21 @@ class HomeScreen extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: const [
-              Icon(Icons.favorite_border, size: 26),
-              SizedBox(width: 18),
-              Icon(Icons.chat_bubble_outline, size: 24),
-              SizedBox(width: 18),
-              Icon(Icons.send, size: 24),
+              Icon(Icons.favorite_border),
+              SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline),
+              SizedBox(width: 16),
+              Icon(Icons.send),
               Spacer(),
-              Icon(Icons.bookmark_border, size: 24),
+              Icon(Icons.bookmark_border),
             ],
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: RichText(
-            text: TextSpan(
-              style: const TextStyle(color: Colors.white),
-              children: [
-                TextSpan(
-                  text: '$user ',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: caption),
-              ],
-            ),
+          child: Text(
+            '$user $caption',
+            style: const TextStyle(fontSize: 13),
           ),
         ),
         const SizedBox(height: 16),
