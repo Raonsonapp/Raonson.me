@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/search_service.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -9,37 +10,34 @@ class SearchScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: Container(
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white12,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.search, color: Colors.white54),
-              SizedBox(width: 8),
-              Text('Search', style: TextStyle(color: Colors.white54)),
-            ],
-          ),
-        ),
+        title: const Text('Search'),
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(2),
-        itemCount: 30,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          crossAxisSpacing: 2,
-          mainAxisSpacing: 2,
-        ),
-        itemBuilder: (context, i) {
-          return Container(
-            color: Colors.white10,
-            child: const Center(
-              child: Icon(Icons.image, color: Colors.white24),
+      body: FutureBuilder<List>(
+        future: SearchService.searchPosts(),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return const Center(child: Text('Search failed'));
+          }
+
+          final posts = snap.data!;
+          return GridView.builder(
+            padding: const EdgeInsets.all(2),
+            itemCount: posts.length,
+            gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 2,
             ),
+            itemBuilder: (context, i) {
+              return Container(
+                color: Colors.white10,
+                child: const Icon(Icons.image, color: Colors.white24),
+              );
+            },
           );
         },
       ),
