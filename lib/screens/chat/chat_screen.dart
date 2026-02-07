@@ -1,86 +1,131 @@
 import 'package:flutter/material.dart';
 
-class ChatScreen extends StatelessWidget {
-  const ChatScreen({super.key});
+class ChatScreen extends StatefulWidget {
+  final String username;
+
+  const ChatScreen({super.key, required this.username});
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _controller = TextEditingController();
+
+  final List<_Message> messages = [
+    _Message(text: 'Hello 👋', fromMe: false),
+    _Message(text: 'Hi! How are you?', fromMe: true),
+    _Message(text: 'I’m good, working on Raonson 🔥', fromMe: false),
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: Row(
-          children: const [
-            CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            SizedBox(width: 10),
-            Text('username'),
-          ],
-        ),
-      ),
+      appBar: _appBar(),
       body: Column(
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: const [
-                _MessageBubble(
-                  text: 'Hello!',
-                  isMe: false,
-                ),
-                _MessageBubble(
-                  text: 'Hi, how are you?',
-                  isMe: true,
-                ),
-                _MessageBubble(
-                  text: 'All good 👍',
-                  isMe: false,
-                ),
-              ],
-            ),
-          ),
-          _input(),
+          Expanded(child: _messages()),
+          _inputBar(),
         ],
       ),
     );
   }
 
-  Widget _input() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF11162A),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.25),
-            blurRadius: 16,
+  AppBar _appBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF0B0F1A),
+      elevation: 0,
+      title: Row(
+        children: [
+          const CircleAvatar(
+            backgroundColor: Colors.blueAccent,
+            child: Icon(Icons.person),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            widget.username,
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
         ],
       ),
+      actions: const [
+        Icon(Icons.call),
+        SizedBox(width: 16),
+        Icon(Icons.videocam),
+        SizedBox(width: 12),
+      ],
+    );
+  }
+
+  Widget _messages() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final msg = messages[index];
+        return _messageBubble(msg);
+      },
+    );
+  }
+
+  Widget _messageBubble(_Message msg) {
+    final align =
+        msg.fromMe ? Alignment.centerRight : Alignment.centerLeft;
+    final color = msg.fromMe
+        ? Colors.blueAccent
+        : const Color(0xFF1C2333);
+
+    return Align(
+      alignment: align,
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Text(msg.text),
+      ),
+    );
+  }
+
+  Widget _inputBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1C2333),
+      ),
       child: Row(
         children: [
-          const Icon(Icons.add, color: Colors.white54),
-          const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: TextField(
-              decoration: InputDecoration(
+              controller: _controller,
+              decoration: const InputDecoration(
                 hintText: 'Message...',
-                hintStyle: TextStyle(color: Colors.white54),
                 border: InputBorder.none,
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blueAccent,
-            ),
-            child: const Icon(Icons.send, color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: () {
+              if (_controller.text.trim().isEmpty) return;
+              setState(() {
+                messages.add(
+                  _Message(text: _controller.text, fromMe: true),
+                );
+                _controller.clear();
+              });
+            },
           ),
         ],
       ),
@@ -88,32 +133,9 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-// ================= MESSAGE BUBBLE =================
-class _MessageBubble extends StatelessWidget {
+class _Message {
   final String text;
-  final bool isMe;
+  final bool fromMe;
 
-  const _MessageBubble({
-    required this.text,
-    required this.isMe,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.blueAccent : const Color(0xFF11162A),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Text(
-          text,
-          style: const TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-  }
+  _Message({required this.text, required this.fromMe});
 }
