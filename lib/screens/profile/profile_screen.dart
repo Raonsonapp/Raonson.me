@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../models/post_model.dart';
+import '../../services/post_service.dart';
+import '../../core/session.dart';
 
-/// ===============================
-/// PROFILE SCREEN – RAONSON v2
-/// Full profile page (Instagram-style)
-/// ===============================
+/// =======================================
+/// PROFILE SCREEN – RAONSON v2 (FULL)
+/// =======================================
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,185 +18,142 @@ class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // -------------------------------
-  // MOCK USER DATA (ба сервер иваз мешавад)
-  // -------------------------------
-  final String username = 'raonson_user';
-  final String bio =
-      'Raonson • Technology • Creativity\nBuilding the future 🚀';
-  final int postsCount = 42;
-  final int followers = 12800;
-  final int following = 312;
-
-  final List<int> posts = List.generate(24, (i) => i);
-  final List<int> reels = List.generate(12, (i) => i);
-  final List<int> saved = List.generate(9, (i) => i);
+  String username = 'user';
+  List<PostModel> posts = [];
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
+    _load();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _load() async {
+    username = await Session.username() ?? 'user';
+
+    final data = await PostService.getPosts();
+    setState(() {
+      posts = data.where((p) => p.username == username).toList();
+      loading = false;
+    });
   }
 
-  // -------------------------------
-  // BUILD
-  // -------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          _header(),
-          const SizedBox(height: 12),
-          _actionButtons(),
-          const SizedBox(height: 16),
-          _tabs(),
-          Expanded(child: _tabViews()),
-        ],
-      ),
+      appBar: _appBar(),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _header(),
+                _stats(),
+                _buttons(),
+                _tabs(),
+                Expanded(child: _tabViews()),
+              ],
+            ),
     );
   }
 
   // -------------------------------
   // APP BAR
   // -------------------------------
-  AppBar _buildAppBar() {
+  AppBar _appBar() {
     return AppBar(
       backgroundColor: const Color(0xFF0B0F1A),
       elevation: 0,
-      title: Text(
-        username,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      centerTitle: false,
+      title: Text(username),
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications_none),
-          onPressed: () {},
-        ),
-        IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () {},
-        ),
+          icon: const Icon(Icons.logout),
+          onPressed: () async {
+            await Session.logout();
+            if (!mounted) return;
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/',
+              (_) => false,
+            );
+          },
+        )
       ],
     );
   }
 
   // -------------------------------
-  // HEADER (AVATAR + STATS + BIO)
+  // HEADER
   // -------------------------------
   Widget _header() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(top: 16),
+      child: CircleAvatar(
+        radius: 46,
+        backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.person, size: 48),
+      ),
+    );
+  }
+
+  // -------------------------------
+  // STATS
+  // -------------------------------
+  Widget _stats() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Row(
-            children: [
-              _avatar(),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _statItem('Posts', postsCount),
-                    _statItem('Followers', followers),
-                    _statItem('Following', following),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            username,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            bio,
-            style: const TextStyle(color: Colors.white70),
-          ),
+          _stat('Posts', posts.length),
+          _stat('Followers', 128),
+          _stat('Following', 94),
         ],
       ),
     );
   }
 
-  Widget _avatar() {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [Colors.blue, Colors.cyanAccent],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.6),
-            blurRadius: 14,
-          ),
-        ],
-      ),
-      child: const CircleAvatar(
-        radius: 42,
-        backgroundColor: Color(0xFF1C2333),
-        child: Icon(Icons.person, size: 42),
-      ),
-    );
-  }
-
-  Widget _statItem(String label, int value) {
+  Widget _stat(String label, int value) {
     return Column(
       children: [
         Text(
           value.toString(),
           style: const TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 12,
-          ),
+          style: const TextStyle(color: Colors.white70),
         ),
       ],
     );
   }
 
   // -------------------------------
-  // ACTION BUTTONS
+  // BUTTONS
   // -------------------------------
-  Widget _actionButtons() {
+  Widget _buttons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
-            child: _actionButton('Edit Profile'),
+            child: _button('Edit profile'),
           ),
-          const SizedBox(width: 10),
-          _iconButton(Icons.person_add),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _button('Share profile'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _actionButton(String text) {
+  Widget _button(String label) {
     return Container(
       height: 36,
       alignment: Alignment.center,
@@ -202,22 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         borderRadius: BorderRadius.circular(12),
         color: Colors.white10,
       ),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _iconButton(IconData icon) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white10,
-      ),
-      child: Icon(icon, size: 20),
+      child: Text(label),
     );
   }
 
@@ -228,11 +172,9 @@ class _ProfileScreenState extends State<ProfileScreen>
     return TabBar(
       controller: _tabController,
       indicatorColor: Colors.blueAccent,
-      indicatorWeight: 2,
       tabs: const [
         Tab(icon: Icon(Icons.grid_on)),
-        Tab(icon: Icon(Icons.play_circle_outline)),
-        Tab(icon: Icon(Icons.bookmark_border)),
+        Tab(icon: Icon(Icons.bookmark)),
       ],
     );
   }
@@ -241,43 +183,50 @@ class _ProfileScreenState extends State<ProfileScreen>
     return TabBarView(
       controller: _tabController,
       children: [
-        _grid(posts),
-        _grid(reels),
-        _grid(saved),
+        _postsGrid(),
+        _savedGrid(),
       ],
     );
   }
 
   // -------------------------------
-  // GRID
+  // POSTS GRID
   // -------------------------------
-  Widget _grid(List<int> items) {
+  Widget _postsGrid() {
+    if (posts.isEmpty) {
+      return const Center(
+        child: Text(
+          'No posts yet',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(2),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
       ),
-      itemCount: items.length,
+      itemCount: posts.length,
       itemBuilder: (context, index) {
-        return _gridItem(items[index]);
+        return Container(
+          color: const Color(0xFF1C2333),
+          child: const Icon(Icons.image, color: Colors.white24),
+        );
       },
     );
   }
 
-  Widget _gridItem(int id) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1C2333),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: const Center(
-        child: Icon(
-          Icons.image,
-          color: Colors.white24,
-          size: 30,
-        ),
+  // -------------------------------
+  // SAVED GRID (MOCK)
+  // -------------------------------
+  Widget _savedGrid() {
+    return const Center(
+      child: Text(
+        'Saved posts',
+        style: TextStyle(color: Colors.white54),
       ),
     );
   }
