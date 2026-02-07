@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-
 import '../screens/home/home_screen.dart';
-import '../screens/reels/reels_screen.dart';
-import '../screens/search/search_screen.dart';
-import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,36 +9,25 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int _index = 0;
+  int index = 0;
 
-  final List<Widget> _screens = const [
+  final pages = const [
     HomeScreen(),
-    ReelsScreen(),
-    SearchScreen(),
-    ProfileScreen(),
+    Placeholder(), // Reels (ҚАДАМИ 5)
+    Placeholder(), // Search (ҚАДАМИ 6)
+    Placeholder(), // Profile (ҚАДАМИ 7)
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-
-      body: _screens[_index],
-
+      body: pages[index],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (i) {
-          setState(() => _index = i);
-        },
-
-        backgroundColor: const Color(0xFF0B0F1A),
+        currentIndex: index,
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white38,
-
+        onTap: (i) => setState(() => index = i),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -50,8 +35,8 @@ class _BottomNavState extends State<BottomNav> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.play_circle_outline),
-            activeIcon: Icon(Icons.play_circle),
+            icon: Icon(Icons.movie_outlined),
+            activeIcon: Icon(Icons.movie),
             label: 'Reels',
           ),
           BottomNavigationBarItem(
@@ -59,11 +44,8 @@ class _BottomNavState extends State<BottomNav> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: CircleAvatar(
-              radius: 12,
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, size: 14),
-            ),
+            icon: Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person),
             label: 'Profile',
           ),
         ],
