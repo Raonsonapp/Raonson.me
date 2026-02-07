@@ -1,21 +1,13 @@
 import 'dart:io';
 
 class SocketService {
-  late WebSocket _socket;
-
-  Future<void> connect(String username) async {
-    _socket = await WebSocket.connect(
-      'wss://raonson-me.onrender.com/ws/chat/$username',
+  late WebSocket _ws;
+  Future<void> connect(String u) async {
+    _ws = await WebSocket.connect(
+      'wss://raonson-me.onrender.com/ws/chat/$u',
     );
   }
-
-  Stream<String> messages() => _socket.asBroadcastStream().cast<String>();
-
-  void send(String to, String message) {
-    _socket.add('$to:$message');
-  }
-
-  void dispose() {
-    _socket.close();
-  }
+  Stream<String> stream() => _ws.cast<String>();
+  void send(String to, String msg) => _ws.add('$to:$msg');
+  void close() => _ws.close();
 }
