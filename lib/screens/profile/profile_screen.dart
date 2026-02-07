@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/user.dart';
-import '../../services/user_service.dart';
-import '../../services/auth_service.dart';
+import '../../core/api.dart';
+import '../../core/http_service.dart';
+import '../../core/session.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -11,90 +11,98 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  UserModel? me;
+  String _username = '';
+  bool _loading = true;
+  List<dynamic> _posts = [];
 
   @override
   void initState() {
     super.initState();
-    load();
+    _init();
   }
 
-  Future<void> load() async {
-    me = await UserService.me();
-    setState(() {});
+  Future<void> _init() async {
+    final u = await Session.username() ?? '';
+    setState(() => _username = u);
+    await _loadMyPosts(u);
+  }
+
+  Future<void> _loadMyPosts(String u) async {
+    try {
+      final data = await HttpService.get(Api.postByUser(u));
+      setState(() {
+        _posts = data ?? [];
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (me == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
-        title: Text(me!.username),
+        title: Text(_username),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await AuthService.logout();
-              if (!mounted) return;
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (_) => false,
-              );
+              await Session.logout();
+              if (mounted) Navigator.of(context).pop();
             },
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                _header(),
+                const Divider(),
+                Expanded(child: _grid()),
+              ],
+            ),
+    );
+  }
+
+  Widget _header() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
         children: [
-          Row(
+          const CircleAvatar(radius: 36, child: Icon(Icons.person)),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white24,
-                child: Text(
-                  me!.username[0].toUpperCase(),
-                  style: const TextStyle(fontSize: 32),
-                ),
-              ),
-              const SizedBox(width: 24),
-              _stat('Posts', me!.posts),
-              _stat('Followers', me!.followers),
-              _stat('Following', me!.following),
+              Text(_username,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text('${_posts.length} posts'),
             ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            me!.bio,
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 24),
-          const Divider(color: Colors.white24),
-          const SizedBox(height: 12),
-          const Text(
-            'Posts',
-            style: TextStyle(color: Colors.white),
-          ),
+          )
         ],
       ),
     );
   }
 
-  Widget _stat(String t, int v) => Expanded(
-        child: Column(
-          children: [
-            Text('$v',
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
-            Text(t, style: const TextStyle(color: Colors.white70)),
-          ],
-        ),
-      );
+  Widget _grid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(2),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemCount: _posts.length,
+      itemBuilder: (c, i) {
+        final img = _posts[i]['image_url'] ?? '';
+        return img.isEmpty
+            ? const ColoredBox(color: Colors.black12)
+            : Image.network(img, fit: BoxFit.cover);
+      },
+    );
+  }
 }
