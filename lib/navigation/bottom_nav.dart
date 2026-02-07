@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/chat/chat_list_screen.dart';
+import '../screens/reels/reels_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,10 +15,10 @@ class _BottomNavState extends State<BottomNav> {
 
   final List<Widget> _screens = const [
     HomeScreen(),
-    _ChatPlaceholder(),
-    _ReelsPlaceholder(),
+    ChatListScreen(),
+    ReelsScreen(),
     _SearchPlaceholder(),
-    _ProfilePlaceholder(),
+    ProfileScreen(),
   ];
 
   @override
