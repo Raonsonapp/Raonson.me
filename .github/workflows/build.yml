@@ -17,27 +17,26 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
 
-      - name: Create fresh Flutter app
+      - name: Create Flutter project
         run: |
-          flutter create raonson_app
-          rm -rf raonson_app/lib
-          cp -r lib raonson_app/lib
-          cp pubspec.yaml raonson_app/pubspec.yaml
+          flutter create raonson
+          rm -rf raonson/lib
+          cp -r lib raonson/lib
+          cp pubspec.yaml raonson/pubspec.yaml
 
       - name: Get dependencies
         run: |
-          cd raonson_app
+          cd raonson
           flutter pub get
 
-      - name: Build APK (release)
+      - name: Build APK
         run: |
-          cd raonson_app
+          cd raonson
           flutter build apk --release
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: raonson-apk
-          path: raonson_app/build/app/outputs/flutter-apk/app-release.apk
+          path: raonson/build/app/outputs/flutter-apk/app-release.apk
