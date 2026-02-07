@@ -1,21 +1,41 @@
+import '../core/session.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../core/api_config.dart';
 
-class ApiService {
-  static Future<dynamic> get(String path) async {
-    final response = await http.get(
-      Uri.parse('${ApiConfig.baseUrl}$path'),
+class AuthService {
+  static const String baseUrl = 'https://raonson-me.onrender.com';
+
+  static Future<bool> login(String username, String password) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
     );
-    return jsonDecode(response.body);
+
+    if (res.statusCode == 200) {
+      await Session.save(username); // ⬅⬅⬅ ИН ХЕЛЕ МУҲИМ
+      return true;
+    }
+    return false;
   }
 
-  static Future<dynamic> post(String path, Map<String, dynamic> body) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}$path'),
+  static Future<bool> register(String username, String password) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(body),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
     );
-    return jsonDecode(response.body);
+
+    if (res.statusCode == 200) {
+      await Session.save(username); // ⬅⬅⬅ ИН ХЕЛЕ МУҲИМ
+      return true;
+    }
+    return false;
   }
 }
