@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/session.dart';
 import 'chat_screen.dart';
-
-/// =======================================
-/// CHAT LIST SCREEN – RAONSON v2 (FULL)
-/// =======================================
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -13,87 +10,86 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  final List<_ChatItem> chats = List.generate(
-    10,
-    (i) => _ChatItem(
-      username: 'user$i',
-      lastMessage: 'Last message from user$i',
-      unread: i % 3 == 0,
-    ),
-  );
+  String me = '';
+
+  final List<String> users = [
+    'ali',
+    'sara',
+    'john',
+    'david',
+    'emma',
+    'maria',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    me = await Session.username() ?? '';
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: const Text(
-          'Messages',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: ListView.separated(
-        itemCount: chats.length,
-        separatorBuilder: (_, __) =>
-            const Divider(height: 1, color: Colors.white10),
-        itemBuilder: (context, index) {
-          final chat = chats[index];
-          return ListTile(
-            leading: CircleAvatar(
-              backgroundColor: Colors.blueAccent,
-              child: Text(chat.username[0].toUpperCase()),
-            ),
-            title: Text(
-              chat.username,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text(
-              chat.lastMessage,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white70),
-            ),
-            trailing: chat.unread
-                ? Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.blueAccent,
-                    ),
-                  )
-                : null,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(
-                    username: chat.username,
-                  ),
-                ),
-              );
-            },
-          );
+      appBar: _appBar(),
+      body: ListView.builder(
+        itemCount: users.length,
+        itemBuilder: (_, i) {
+          final u = users[i];
+          if (u == me) return const SizedBox();
+          return _chatTile(u);
         },
       ),
     );
   }
-}
 
-/// =======================================
-/// CHAT ITEM MODEL
-/// =======================================
+  // ================= APP BAR =================
+  AppBar _appBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF0B0F1A),
+      elevation: 0,
+      title: Text(
+        me,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.edit),
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
 
-class _ChatItem {
-  final String username;
-  final String lastMessage;
-  final bool unread;
-
-  _ChatItem({
-    required this.username,
-    required this.lastMessage,
-    required this.unread,
-  });
+  // ================= CHAT TILE =================
+  Widget _chatTile(String user) {
+    return ListTile(
+      leading: const CircleAvatar(
+        backgroundColor: Colors.blueAccent,
+        child: Icon(Icons.person),
+      ),
+      title: Text(
+        user,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: const Text(
+        'Tap to chat',
+        style: TextStyle(color: Colors.white54),
+      ),
+      trailing: const Icon(Icons.camera_alt_outlined),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(peer: user),
+          ),
+        );
+      },
+    );
+  }
 }
