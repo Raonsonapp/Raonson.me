@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/session.dart';
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,83 +10,86 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _username = TextEditingController();
-  final _password = TextEditingController();
-  bool loading = false;
-  String? error;
+  final _userCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  bool _loading = false;
+  String _error = '';
 
-  Future<void> login() async {
+  Future<void> _login() async {
     setState(() {
-      loading = true;
-      error = null;
+      _loading = true;
+      _error = '';
     });
 
     try {
-      await AuthService.login(
-        username: _username.text.trim(),
-        password: _password.text.trim(),
-      );
+      final username = _userCtrl.text.trim();
+      final password = _passCtrl.text.trim();
 
-      if (!mounted) return;
-      Navigator.pushReplacementNamed(context, '/home');
+      if (username.isEmpty || password.isEmpty) {
+        throw 'Fill all fields';
+      }
+
+      await AuthService.login(username, password);
+
+      // 🔑 SAVE SESSION
+      await Session.save(username);
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } catch (e) {
-      setState(() => error = e.toString());
+      setState(() => _error = 'Login failed');
     } finally {
-      setState(() => loading = false);
+      setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-      body: Center(
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
+              const SizedBox(height: 40),
               const Text(
                 'Raonson',
                 style: TextStyle(
                   fontSize: 32,
-                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 32),
-
+              const SizedBox(height: 40),
               TextField(
-                controller: _username,
-                style: const TextStyle(color: Colors.white),
-                decoration: _dec('Username'),
+                controller: _userCtrl,
+                decoration: const InputDecoration(labelText: 'Username'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Password'),
+              ),
+              const SizedBox(height: 20),
+              if (_error.isNotEmpty)
+                Text(_error, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _login,
+                  child: _loading
+                      ? const CircularProgressIndicator()
+                      : const Text('Log in'),
+                ),
               ),
               const SizedBox(height: 16),
-
-              TextField(
-                controller: _password,
-                obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: _dec('Password'),
-              ),
-
-              if (error != null) ...[
-                const SizedBox(height: 12),
-                Text(error!, style: const TextStyle(color: Colors.red)),
-              ],
-
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: loading ? null : login,
-                child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text('Login'),
-              ),
-
               TextButton(
-                onPressed: () =>
-                    Navigator.pushNamed(context, '/register'),
-                child: const Text('Create account'),
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, '/register');
+                },
+                child: const Text("Don't have an account? Sign up"),
               ),
             ],
           ),
@@ -93,15 +97,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  InputDecoration _dec(String label) => InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white70),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white24),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.blueAccent),
-        ),
-      );
 }
