@@ -1,20 +1,45 @@
-import '../core/api.dart';
+import 'dart:convert';
 import '../core/http_service.dart';
+import '../core/session.dart';
 
 class AuthService {
-  static Future<bool> login(String username, String password) async {
+  static Future<void> login(
+    String username,
+    String password,
+  ) async {
     final res = await HttpService.post(
-      '${Api.baseUrl}/auth/login',
-      {'username': username, 'password': password},
+      '/auth/login',
+      {
+        'username': username,
+        'password': password,
+      },
     );
-    return res.statusCode == 200;
+
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      await Session.save(
+        token: data['token'],
+        username: username,
+      );
+    } else {
+      throw Exception('Login failed');
+    }
   }
 
-  static Future<bool> register(String username, String password) async {
+  static Future<void> register(
+    String username,
+    String password,
+  ) async {
     final res = await HttpService.post(
-      '${Api.baseUrl}/auth/register',
-      {'username': username, 'password': password},
+      '/auth/register',
+      {
+        'username': username,
+        'password': password,
+      },
     );
-    return res.statusCode == 200;
+
+    if (res.statusCode != 200) {
+      throw Exception('Register failed');
+    }
   }
 }
