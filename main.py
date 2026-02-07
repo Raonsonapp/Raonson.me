@@ -1,64 +1,70 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
-import uuid
+from typing import List, Dict
 
 app = FastAPI()
 
-users = {}
-sessions = {}
+# ===== DATABASE (IN-MEMORY) =====
+users: Dict[str, str] = {}
+posts = []
+likes = {}
+connections = {}
 
-class AuthRequest(BaseModel):
+# ===== MODELS =====
+class Auth(BaseModel):
     username: str
     password: str
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+class Post(BaseModel):
+    id: int
+    username: str
+    caption: str
 
+# ===== AUTH =====
 @app.post("/auth/register")
-def register(data: AuthRequest):
+def register(data: Auth):
     if data.username in users:
-        raise HTTPException(status_code=400, detail="User exists")
+        raise HTTPException(400, "User exists")
     users[data.username] = data.password
-    token = str(uuid.uuid4())
-    sessions[token] = data.username
-    return {
-        "token": token,
-        "user": {"username": data.username}
-    }
+    return {"ok": True}
 
 @app.post("/auth/login")
-def login(data: AuthRequest):
+def login(data: Auth):
     if users.get(data.username) != data.password:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = str(uuid.uuid4())
-    sessions[token] = data.username
-    return {
-        "token": token,
-        "user": {"username": data.username}
-    }
+        raise HTTPException(401, "Invalid")
+    return {"token": data.username}
 
-@app.get("/me")
-def me(token: str):
-    if token not in sessions:
-        raise HTTPException(status_code=401)
-    return {"username": sessions[token]}
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+# ===== POSTS =====
+@app.get("/posts")
+def get_posts():
+    return posts
 
-app = FastAPI()
+@app.post("/posts")
+def create_post(post: Dict):
+    pid = len(posts) + 1
+    posts.append({
+        "id": pid,
+        "username": post.get("username"),
+        "caption": post.get("caption"),
+    })
+    likes[pid] = 0
+    return {"ok": True}
 
-connections = {}
+@app.post("/posts/{pid}/like")
+def like_post(pid: int):
+    likes[pid] += 1
+    return {"likes": likes[pid]}
 
-@app.websocket("/ws/chat/{username}")
-async def chat_ws(ws: WebSocket, username: str):
+# ===== CHAT (REALTIME) =====
+@app.websocket("/ws/chat/{user}")
+async def chat(ws: WebSocket, user: str):
     await ws.accept()
-    connections[username] = ws
+    connections[user] = ws
     try:
         while True:
             data = await ws.receive_text()
-            # формати содда: "to:message"
             to, msg = data.split(":", 1)
             if to in connections:
-                await connections[to].send_text(f"{username}:{msg}")
+                await connections[to].send_text(f"{user}:{msg}")
     except WebSocketDisconnect:
-        connections.pop(username, None)
+        connections.pop(user, None)
