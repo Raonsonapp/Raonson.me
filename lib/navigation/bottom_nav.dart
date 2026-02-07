@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../screens/home/home_screen.dart';
+import '../screens/home/home_screen.dart'
+import '../screens/reels/reels_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -13,7 +14,7 @@ class _BottomNavState extends State<BottomNav> {
 
   final pages = const [
     HomeScreen(),
-    Placeholder(), // Reels (ҚАДАМИ 5)
+    ReelsScreen(),
     Placeholder(), // Search (ҚАДАМИ 6)
     Placeholder(), // Profile (ҚАДАМИ 7)
   ];
