@@ -1,70 +1,35 @@
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import Dict
 
 app = FastAPI()
 
-# ===== DATABASE (IN-MEMORY) =====
 users: Dict[str, str] = {}
-posts = []
-likes = {}
-connections = {}
 
-# ===== MODELS =====
 class Auth(BaseModel):
     username: str
     password: str
 
-class Post(BaseModel):
-    id: int
-    username: str
-    caption: str
-
-# ===== AUTH =====
 @app.post("/auth/register")
 def register(data: Auth):
-    if data.username in users:
-        raise HTTPException(400, "User exists")
+    # агар ҳаст → OK
     users[data.username] = data.password
-    return {"ok": True}
+    return {
+        "ok": True,
+        "username": data.username
+    }
 
 @app.post("/auth/login")
 def login(data: Auth):
-    if users.get(data.username) != data.password:
-        raise HTTPException(401, "Invalid")
-    return {"token": data.username}
+    # агар user нест → месозем
+    if data.username not in users:
+        users[data.username] = data.password
 
-# ===== POSTS =====
-@app.get("/posts")
-def get_posts():
-    return posts
+    # агар password фарқ кунад → error
+    if users[data.username] != data.password:
+        raise HTTPException(status_code=401, detail="Invalid password")
 
-@app.post("/posts")
-def create_post(post: Dict):
-    pid = len(posts) + 1
-    posts.append({
-        "id": pid,
-        "username": post.get("username"),
-        "caption": post.get("caption"),
-    })
-    likes[pid] = 0
-    return {"ok": True}
-
-@app.post("/posts/{pid}/like")
-def like_post(pid: int):
-    likes[pid] += 1
-    return {"likes": likes[pid]}
-
-# ===== CHAT (REALTIME) =====
-@app.websocket("/ws/chat/{user}")
-async def chat(ws: WebSocket, user: str):
-    await ws.accept()
-    connections[user] = ws
-    try:
-        while True:
-            data = await ws.receive_text()
-            to, msg = data.split(":", 1)
-            if to in connections:
-                await connections[to].send_text(f"{user}:{msg}")
-    except WebSocketDisconnect:
-        connections.pop(user, None)
+    return {
+        "ok": True,
+        "token": data.username
+    }
