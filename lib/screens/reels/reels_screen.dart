@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../models/post.dart';
 import '../../core/api.dart';
 import '../../core/http_client.dart';
 import '../../models/post.dart';
