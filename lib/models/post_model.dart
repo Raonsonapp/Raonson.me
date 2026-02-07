@@ -9,11 +9,11 @@ class Post {
     required this.caption,
   });
 
-  factory Post.fromJson(Map j) {
+  factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: j['id'].toString(),
-      username: j['username'],
-      caption: j['caption'] ?? '',
+      id: json['id'].toString(),
+      username: json['username'] ?? '',
+      caption: json['caption'] ?? '',
     );
   }
 }
