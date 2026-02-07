@@ -5,6 +5,7 @@ import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -14,8 +15,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final p = TextEditingController();
   bool loading = false;
 
-  Future<void> doLogin() async {
+  Future<void> login() async {
     setState(() => loading = true);
+
     try {
       final ok = await AuthService.login(u.text, p.text);
       if (ok && mounted) {
@@ -23,19 +25,10 @@ class _LoginScreenState extends State<LoginScreen> {
           context,
           MaterialPageRoute(builder: (_) => const MainLayout()),
         );
-      } else {
-        _err();
       }
-    } catch (_) {
-      _err();
     } finally {
       if (mounted) setState(() => loading = false);
     }
-  }
-
-  void _err() {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Login failed')));
   }
 
   @override
@@ -51,14 +44,24 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 32),
             TextField(controller: u, decoration: const InputDecoration(labelText: 'Username')),
             const SizedBox(height: 16),
-            TextField(controller: p, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
+            TextField(
+              controller: p,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password'),
+            ),
             const SizedBox(height: 24),
             loading
                 ? const CircularProgressIndicator()
-                : ElevatedButton(onPressed: doLogin, child: const Text('Login')),
+                : ElevatedButton(
+                    onPressed: login,
+                    child: const Text('Login'),
+                  ),
             TextButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                );
               },
               child: const Text('Create account'),
             ),
