@@ -1,1 +1,3 @@
-const String baseUrl = "https://raonson-me.onrender.com";
+class ApiConfig {
+  static const String baseUrl = 'https://raonson-me.onrender.com';
+}
