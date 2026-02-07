@@ -1,31 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/post_service.dart';
-import '../../models/post_model.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List<PostModel> posts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    load();
-  }
-
-  Future<void> load() async {
-    final data = await PostService.fetchPosts();
-    setState(() => posts = data);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // UI ҳамон мемонад
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -39,9 +13,9 @@ class HomeScreen extends StatelessWidget {
         title: const Text(
           'Raonson',
           style: TextStyle(
+            color: Colors.blueAccent,
             fontSize: 26,
             fontWeight: FontWeight.bold,
-            color: Colors.blueAccent,
           ),
         ),
         actions: const [
@@ -50,18 +24,25 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: ListView(
-        children: [
-          _stories(),
-          const SizedBox(height: 12),
-          _postCard(),
-          _postCard(),
+        children: const [
+          _Stories(),
+          SizedBox(height: 12),
+          _PostCard(),
+          _PostCard(),
         ],
       ),
     );
   }
+}
 
-  // ================= STORIES =================
-  Widget _stories() {
+//
+// ================= STORIES =================
+//
+class _Stories extends StatelessWidget {
+  const _Stories();
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
       height: 96,
       child: ListView.builder(
@@ -75,9 +56,9 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       colors: [Colors.blueAccent, Colors.lightBlue],
                     ),
                   ),
@@ -99,9 +80,16 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  // ================= POST CARD =================
-  Widget _postCard() {
+//
+// ================= POST CARD =================
+//
+class _PostCard extends StatelessWidget {
+  const _PostCard();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 16),
       decoration: BoxDecoration(
