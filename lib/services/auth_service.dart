@@ -1,29 +1,19 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../core/api.dart';
+import '../core/http_service.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://raonson-me.onrender.com';
-
   static Future<bool> login(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
+    final res = await HttpService.post(
+      '${Api.baseUrl}/auth/login',
+      {'username': username, 'password': password},
     );
     return res.statusCode == 200;
   }
 
   static Future<bool> register(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
+    final res = await HttpService.post(
+      '${Api.baseUrl}/auth/register',
+      {'username': username, 'password': password},
     );
     return res.statusCode == 200;
   }
