@@ -2,14 +2,10 @@ import '../core/api.dart';
 import '../core/http_service.dart';
 
 class SearchService {
-  // ===== SEARCH USERS =====
-  static Future<List<dynamic>> searchUsers(String query) async {
-    if (query.isEmpty) return [];
-    final res = await HttpService.get(
-      '${Api.baseUrl}/search/users?q=$query',
-    );
-    return (res as List?) ?? [];
+  static Future<List<dynamic>> explore() async {
+    return await HttpService.get('${Api.baseUrl}/search/explore');
   }
+}
 
   // ===== SEARCH POSTS =====
   static Future<List<dynamic>> searchPosts(String query) async {
