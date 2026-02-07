@@ -1,50 +1,49 @@
 import 'package:flutter/material.dart';
 import 'core/session.dart';
-import 'navigation/bottom_nav.dart';
 import 'screens/auth/login_screen.dart';
+import 'navigation/bottom_nav.dart';
 
 void main() {
-  runApp(const App());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const RaonsonApp());
 }
 
-class App extends StatelessWidget {
-  const App({super.key});
+class RaonsonApp extends StatelessWidget {
+  const RaonsonApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Bootstrap(),
+      title: 'Raonson',
+      theme: ThemeData.dark(),
+      home: const Root(),
     );
   }
 }
 
-class Bootstrap extends StatefulWidget {
-  const Bootstrap({super.key});
-
-  @override
-  State<Bootstrap> createState() => _BootstrapState();
-}
-
-class _BootstrapState extends State<Bootstrap> {
-  @override
-  void initState() {
-    super.initState();
-    _go();
-  }
-
-  Future<void> _go() async {
-    final u = await Session.username();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => u == null ? const LoginScreen() : const BottomNav(),
-      ),
-    );
-  }
+class Root extends StatelessWidget {
+  const Root({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return FutureBuilder<bool>(
+      future: Session.isLoggedIn(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.data == true) {
+          return const BottomNav(); // ⬅⬅⬅ рост ба home меравад
+        } else {
+          return const LoginScreen();
+        }
+      },
+    );
   }
 }
