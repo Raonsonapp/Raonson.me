@@ -1,123 +1,75 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../core/http_service.dart';
-import '../../core/session.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List posts = [];
-  bool loading = true;
-  String username = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    username = await Session.username() ?? '';
-    await _loadPosts();
-  }
-
-  Future<void> _loadPosts() async {
-    final res = await HttpService.get('/posts');
-    posts = jsonDecode(res.body);
-    setState(() => loading = false);
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: _appBar(),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadPosts,
-              child: ListView(
-                children: [
-                  _stories(),
-                  const Divider(color: Colors.white12),
-                  ...posts.map(_postCard).toList(),
-                ],
-              ),
-            ),
-    );
-  }
 
-  // ================= APP BAR =================
-  AppBar _appBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0B0F1A),
-      elevation: 0,
-      titleSpacing: 0,
-      title: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.add_box_outlined),
-            onPressed: () {
-              // Add post screen later
-            },
+      // ===== TOP BAR =====
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Raonson',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
           ),
-          const Text(
-            'Raonson',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.add_box_outlined),
+          onPressed: () {
+            // add post later
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.smart_toy_outlined), // Jarvis
+            onPressed: () {},
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.smart_toy), // Jarvis
-          onPressed: () {},
-        ),
-      ],
+
+      // ===== BODY =====
+      body: ListView(
+        children: [
+          _stories(),
+          const Divider(color: Colors.white12),
+          _post(),
+          _post(),
+        ],
+      ),
     );
   }
 
-  // ================= STORIES =================
+  // ===== STORIES =====
   Widget _stories() {
     return SizedBox(
-      height: 105,
+      height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: 10,
-        itemBuilder: (_, i) {
+        itemCount: 8,
+        itemBuilder: (context, index) {
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            padding: const EdgeInsets.all(8),
             child: Column(
               children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Colors.blue, Colors.cyan],
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(3),
-                    child: CircleAvatar(
-                      backgroundColor: Color(0xFF0B0F1A),
-                      child: Icon(Icons.person),
-                    ),
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: Colors.blueAccent,
+                  child: const CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.black,
+                    child: Icon(Icons.person),
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'user$i',
-                  style: const TextStyle(fontSize: 12),
+                const Text(
+                  'user',
+                  style: TextStyle(fontSize: 12),
                 ),
               ],
             ),
@@ -127,83 +79,50 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= POST CARD =================
-  Widget _postCard(dynamic post) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      color: const Color(0xFF0B0F1A),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _postHeader(post),
-          _postMedia(),
-          _postActions(post),
-          _postCaption(post),
-        ],
-      ),
-    );
-  }
+  // ===== POST CARD =====
+  Widget _post() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ListTile(
+          leading: CircleAvatar(child: Icon(Icons.person)),
+          title: Text('username'),
+          trailing: Icon(Icons.more_vert),
+        ),
 
-  Widget _postHeader(dynamic post) {
-    return ListTile(
-      leading: const CircleAvatar(
-        backgroundColor: Colors.blueAccent,
-        child: Icon(Icons.person),
-      ),
-      title: Text(
-        post['username'],
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      trailing: const Icon(Icons.more_vert),
-    );
-  }
+        Container(
+          height: 280,
+          color: Colors.black26,
+          child: const Center(
+            child: Icon(Icons.image, size: 80, color: Colors.white24),
+          ),
+        ),
 
-  Widget _postMedia() {
-    return Container(
-      height: 360,
-      color: const Color(0xFF141B2D),
-      child: const Center(
-        child: Icon(Icons.image, size: 80, color: Colors.white24),
-      ),
-    );
-  }
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: const [
+              Icon(Icons.favorite_border),
+              SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline),
+              SizedBox(width: 16),
+              Icon(Icons.send),
+              Spacer(),
+              Icon(Icons.bookmark_border),
+            ],
+          ),
+        ),
 
-  Widget _postActions(dynamic post) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () async {
-              await HttpService.post('/posts/${post['id']}/like', {});
-            },
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'This is a Raonson post',
+            style: TextStyle(color: Colors.white70),
           ),
-          IconButton(
-            icon: const Icon(Icons.comment_outlined),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.send_outlined),
-            onPressed: () {},
-          ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () {},
-          ),
-        ],
-      ),
-    );
-  }
+        ),
 
-  Widget _postCaption(dynamic post) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: Text(
-        post['caption'],
-        style: const TextStyle(fontSize: 14),
-      ),
+        const SizedBox(height: 16),
+      ],
     );
   }
 }
