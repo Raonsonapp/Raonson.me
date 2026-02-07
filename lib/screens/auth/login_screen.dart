@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import 'register_screen.dart';
-import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,10 +9,31 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _user = TextEditingController();
-  final _pass = TextEditingController();
+  final _username = TextEditingController();
+  final _password = TextEditingController();
   bool loading = false;
   String? error;
+
+  Future<void> login() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      await AuthService.login(
+        username: _username.text.trim(),
+        password: _password.text.trim(),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      setState(() => error = e.toString());
+    } finally {
+      setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,13 +47,27 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Text(
                 'Raonson',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 32,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
 
-              _input(_user, 'Username'),
+              TextField(
+                controller: _username,
+                style: const TextStyle(color: Colors.white),
+                decoration: _dec('Username'),
+              ),
               const SizedBox(height: 16),
-              _input(_pass, 'Password', obscure: true),
+
+              TextField(
+                controller: _password,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: _dec('Password'),
+              ),
 
               if (error != null) ...[
                 const SizedBox(height: 12),
@@ -42,18 +75,16 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
 
               const SizedBox(height: 24),
-              _loginButton(),
+              ElevatedButton(
+                onPressed: loading ? null : login,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Login'),
+              ),
 
-              const SizedBox(height: 12),
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RegisterScreen(),
-                    ),
-                  );
-                },
+                onPressed: () =>
+                    Navigator.pushNamed(context, '/register'),
                 child: const Text('Create account'),
               ),
             ],
@@ -63,57 +94,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _input(
-    TextEditingController c,
-    String hint, {
-    bool obscure = false,
-  }) {
-    return TextField(
-      controller: c,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white10,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
+  InputDecoration _dec(String label) => InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.white24),
         ),
-      ),
-    );
-  }
-
-  Widget _loginButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: ElevatedButton(
-        onPressed: loading ? null : _login,
-        child: loading
-            ? const CircularProgressIndicator()
-            : const Text('Login'),
-      ),
-    );
-  }
-
-  Future<void> _login() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
-    try {
-      await AuthService.login(_user.text, _pass.text);
-      if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-        (_) => false,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.blueAccent),
+        ),
       );
-    } catch (e) {
-      setState(() => error = 'Invalid credentials');
-    }
-
-    setState(() => loading = false);
-  }
 }
