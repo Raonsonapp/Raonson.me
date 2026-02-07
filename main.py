@@ -43,3 +43,22 @@ def me(token: str):
     if token not in sessions:
         raise HTTPException(status_code=401)
     return {"username": sessions[token]}
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+app = FastAPI()
+
+connections = {}
+
+@app.websocket("/ws/chat/{username}")
+async def chat_ws(ws: WebSocket, username: str):
+    await ws.accept()
+    connections[username] = ws
+    try:
+        while True:
+            data = await ws.receive_text()
+            # формати содда: "to:message"
+            to, msg = data.split(":", 1)
+            if to in connections:
+                await connections[to].send_text(f"{username}:{msg}")
+    except WebSocketDisconnect:
+        connections.pop(username, None)
