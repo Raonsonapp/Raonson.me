@@ -100,7 +100,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ================= POST CARD =================
   Widget _postCard(dynamic post) {
-    final String postId = post['id'].toString();
+    final int postId = post['id'] is int
+    ? post['id']
+    : int.parse(post['id'].toString());
     final String username = post['username'] ?? '';
     final String caption = post['caption'] ?? '';
     final String imageUrl = post['image_url'] ?? '';
