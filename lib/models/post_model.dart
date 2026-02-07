@@ -1,19 +1,19 @@
-class PostModel {
-  final int id;
+class Post {
+  final String id;
+  final String username;
   final String caption;
-  final String imageUrl;
 
-  PostModel({
+  Post({
     required this.id,
+    required this.username,
     required this.caption,
-    required this.imageUrl,
   });
 
-  factory PostModel.fromJson(Map<String, dynamic> json) {
-    return PostModel(
-      id: json['id'],
-      caption: json['caption'],
-      imageUrl: json['image_url'],
+  factory Post.fromJson(Map j) {
+    return Post(
+      id: j['id'].toString(),
+      username: j['username'],
+      caption: j['caption'] ?? '',
     );
   }
 }
