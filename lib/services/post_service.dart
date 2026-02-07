@@ -1,19 +1,22 @@
 import 'dart:convert';
 import '../core/http_service.dart';
-import '../models/post_model.dart';
+import '../core/session.dart';
 
 class PostService {
-  static Future<List<PostModel>> getPosts() async {
-    final res = await HttpService.get('/posts');
-
-    if (res.statusCode == 200) {
-      final List data = jsonDecode(res.body);
-      return data.map((e) => PostModel.fromJson(e)).toList();
-    }
-    throw Exception('Failed to load posts');
+  static Future<List> getPosts() async {
+    final r = await HttpService.get('/posts');
+    return jsonDecode(r.body);
   }
 
-  static Future<void> like(int postId) async {
-    await HttpService.post('/posts/$postId/like', {});
+  static Future<void> create(String caption) async {
+    final u = await Session.username();
+    await HttpService.post('/posts', {
+      'username': u,
+      'caption': caption,
+    });
+  }
+
+  static Future<void> like(int id) async {
+    await HttpService.post('/posts/$id/like', {});
   }
 }
