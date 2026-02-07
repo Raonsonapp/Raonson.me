@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/auth_service.dart';
+import '../../services/auth_service.dart';
 import '../../navigation/bottom_nav.dart';
 import 'register_screen.dart';
 
@@ -11,17 +11,26 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _u = TextEditingController();
-  final _p = TextEditingController();
+  final username = TextEditingController();
+  final password = TextEditingController();
   bool loading = false;
   String? error;
 
-  Future<void> _login() async {
-    setState(() { loading = true; error = null; });
-    final ok = await AuthService.login(_u.text.trim(), _p.text.trim());
+  Future<void> doLogin() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    final ok = await AuthService.login(
+      username.text.trim(),
+      password.text.trim(),
+    );
+
     setState(() => loading = false);
 
     if (!mounted) return;
+
     if (ok) {
       Navigator.pushReplacement(
         context,
@@ -35,46 +44,67 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Raonson',
-              style: TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _u,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(labelText: 'Username'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _p,
-              obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(labelText: 'Password'),
-            ),
-            const SizedBox(height: 16),
-            if (error != null) Text(error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: loading ? null : _login,
-              child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Login'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
-                );
-              },
-              child: const Text('Create account'),
-            )
-          ],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Raonson',
+                style: TextStyle(
+                  fontSize: 38,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              TextField(
+                controller: username,
+                decoration: const InputDecoration(
+                  hintText: 'Username',
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              TextField(
+                controller: password,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  hintText: 'Password',
+                ),
+              ),
+
+              const SizedBox(height: 20),
+              if (error != null)
+                Text(error!, style: const TextStyle(color: Colors.red)),
+
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: loading ? null : doLogin,
+                  child: loading
+                      ? const CircularProgressIndicator()
+                      : const Text('Log in'),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RegisterScreen(),
+                    ),
+                  );
+                },
+                child: const Text('Create new account'),
+              ),
+            ],
+          ),
         ),
       ),
     );
