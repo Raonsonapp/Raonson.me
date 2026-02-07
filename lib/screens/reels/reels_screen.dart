@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
-import '../../models/reel.dart';
-import '../../services/reels_service.dart';
+import '../../core/api.dart';
+import '../../core/http_service.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -11,106 +10,120 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
-  final PageController _page = PageController();
-  List<Reel> reels = [];
-  bool loading = true;
-  VideoPlayerController? _vc;
+  bool _loading = true;
+  List<dynamic> _reels = [];
 
   @override
   void initState() {
     super.initState();
-    load();
+    _loadReels();
   }
 
-  Future<void> load() async {
-    reels = await ReelsService.fetchReels();
-    setState(() => loading = false);
-    if (reels.isNotEmpty) _initVideo(0);
-  }
-
-  Future<void> _initVideo(int i) async {
-    await _vc?.dispose();
-    _vc = VideoPlayerController.networkUrl(Uri.parse(reels[i].videoUrl));
-    await _vc!.initialize();
-    _vc!.setLooping(true);
-    _vc!.play();
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _vc?.dispose();
-    _page.dispose();
-    super.dispose();
+  Future<void> _loadReels() async {
+    try {
+      final data = await HttpService.get(Api.posts);
+      setState(() {
+        _reels = data ?? [];
+        _loading = false;
+      });
+    } catch (_) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: PageView.builder(
-        controller: _page,
-        scrollDirection: Axis.vertical,
-        itemCount: reels.length,
-        onPageChanged: _initVideo,
-        itemBuilder: (_, i) => Stack(
-          children: [
-            if (_vc != null && _vc!.value.isInitialized)
-              Center(
-                child: AspectRatio(
-                  aspectRatio: _vc!.value.aspectRatio,
-                  child: VideoPlayer(_vc!),
-                ),
-              ),
-
-            // RIGHT ACTIONS
-            Positioned(
-              right: 12,
-              bottom: 120,
-              child: Column(
-                children: const [
-                  Icon(Icons.favorite_border, color: Colors.white, size: 30),
-                  SizedBox(height: 18),
-                  Icon(Icons.chat_bubble_outline,
-                      color: Colors.white, size: 28),
-                  SizedBox(height: 18),
-                  Icon(Icons.send_outlined, color: Colors.white, size: 28),
-                  SizedBox(height: 18),
-                  Icon(Icons.bookmark_border, color: Colors.white, size: 28),
-                ],
-              ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : PageView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: _reels.length,
+              itemBuilder: (c, i) => _reelItem(_reels[i]),
             ),
+    );
+  }
 
-            // BOTTOM INFO
-            Positioned(
-              left: 12,
-              bottom: 24,
-              right: 80,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '@${reels[i].username}',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    reels[i].caption,
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                ],
-              ),
+  Widget _reelItem(dynamic p) {
+    final username = p['username'] ?? '';
+    final caption = p['caption'] ?? '';
+    final imageUrl = p['image_url'] ?? '';
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // media
+        imageUrl.isNotEmpty
+            ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    const Center(child: Icon(Icons.broken_image)),
+              )
+            : const ColoredBox(color: Colors.black),
+
+        // gradient
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.center,
+              colors: [Colors.black54, Colors.transparent],
             ),
-          ],
+          ),
         ),
-      ),
+
+        // left info
+        Positioned(
+          left: 12,
+          bottom: 24,
+          right: 80,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('@$username',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 6),
+              Text(caption, maxLines: 3, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+
+        // right actions
+        Positioned(
+          right: 12,
+          bottom: 60,
+          child: Column(
+            children: const [
+              _ReelAction(icon: Icons.favorite_border, label: 'Like'),
+              SizedBox(height: 18),
+              _ReelAction(icon: Icons.mode_comment_outlined, label: 'Comment'),
+              SizedBox(height: 18),
+              _ReelAction(icon: Icons.send, label: 'Share'),
+              SizedBox(height: 18),
+              _ReelAction(icon: Icons.bookmark_border, label: 'Save'),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReelAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _ReelAction({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 28),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
     );
   }
 }
