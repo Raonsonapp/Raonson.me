@@ -1,6 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../core/api.dart';
+import '../../core/http_client.dart';
+import '../../models/post.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -10,93 +11,88 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
-  List reels = [];
+  List<Post> reels = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchReels();
+    loadReels();
   }
 
-  Future<void> fetchReels() async {
-    try {
-      final res = await http.get(
-        Uri.parse('https://raonson-me.onrender.com/posts'),
-      );
+  Future<void> loadReels() async {
+    final data = await HttpClient.get(
+      '${ApiConfig.baseUrl}/posts',
+    );
 
-      if (res.statusCode == 200) {
-        setState(() {
-          reels = jsonDecode(res.body);
-          loading = false;
-        });
-      } else {
-        setState(() => loading = false);
-      }
-    } catch (_) {
-      setState(() => loading = false);
-    }
+    setState(() {
+      reels = data.map<Post>((e) => Post.fromJson(e)).toList();
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : PageView.builder(
-              scrollDirection: Axis.vertical,
-              itemCount: reels.length,
-              itemBuilder: (context, index) {
-                final reel = reels[index];
-                return _ReelItem(reel: reel);
-              },
-            ),
+      body: PageView.builder(
+        scrollDirection: Axis.vertical,
+        itemCount: reels.length,
+        itemBuilder: (context, index) {
+          return _ReelItem(post: reels[index]);
+        },
+      ),
     );
   }
 }
 
 class _ReelItem extends StatelessWidget {
-  final Map reel;
-
-  const _ReelItem({required this.reel});
+  final Post post;
+  const _ReelItem({required this.post});
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // ===== VIDEO PLACEHOLDER =====
+        // VIDEO PLACEHOLDER (SERVER-READY)
         Container(
           color: Colors.black,
           child: const Center(
             child: Icon(
               Icons.play_circle_outline,
-              size: 90,
+              size: 100,
               color: Colors.white24,
             ),
           ),
         ),
 
-        // ===== RIGHT ACTIONS =====
+        // RIGHT ACTIONS (DESIGN FROM YOUR IMAGES)
         Positioned(
-          right: 12,
+          right: 14,
           bottom: 120,
           child: Column(
             children: const [
-              _ReelIcon(icon: Icons.favorite_border, label: '1.2K'),
-              SizedBox(height: 20),
-              _ReelIcon(icon: Icons.chat_bubble_outline, label: '340'),
-              SizedBox(height: 20),
-              _ReelIcon(icon: Icons.send, label: 'Share'),
-              SizedBox(height: 20),
-              _ReelIcon(icon: Icons.bookmark_border, label: 'Save'),
+              _ReelAction(icon: Icons.favorite_border, label: '1.2K'),
+              SizedBox(height: 22),
+              _ReelAction(icon: Icons.chat_bubble_outline, label: '340'),
+              SizedBox(height: 22),
+              _ReelAction(icon: Icons.send, label: 'Share'),
+              SizedBox(height: 22),
+              _ReelAction(icon: Icons.bookmark_border, label: 'Save'),
             ],
           ),
         ),
 
-        // ===== USER INFO =====
+        // USER + CAPTION (BOTTOM LEFT)
         Positioned(
-          left: 12,
+          left: 14,
           bottom: 30,
           right: 90,
           child: Column(
@@ -107,11 +103,11 @@ class _ReelItem extends StatelessWidget {
                   const CircleAvatar(
                     radius: 16,
                     backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.person, color: Colors.white, size: 16),
+                    child: Icon(Icons.person, size: 16, color: Colors.white),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    reel['username'] ?? 'user',
+                    post.username,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -121,7 +117,7 @@ class _ReelItem extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                reel['caption'] ?? '',
+                post.caption,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -137,11 +133,11 @@ class _ReelItem extends StatelessWidget {
   }
 }
 
-class _ReelIcon extends StatelessWidget {
+class _ReelAction extends StatelessWidget {
   final IconData icon;
   final String label;
 
-  const _ReelIcon({required this.icon, required this.label});
+  const _ReelAction({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -152,13 +148,13 @@ class _ReelIcon extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.blue.withOpacity(0.25),
-                blurRadius: 12,
+                color: Colors.blueAccent.withOpacity(0.35),
+                blurRadius: 14,
                 spreadRadius: 2,
               ),
             ],
           ),
-          child: Icon(icon, color: Colors.white, size: 30),
+          child: Icon(icon, color: Colors.white, size: 32),
         ),
         const SizedBox(height: 6),
         Text(
