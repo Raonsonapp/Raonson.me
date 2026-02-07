@@ -2,7 +2,7 @@ class PostModel {
   final int id;
   final String username;
   final String caption;
-  final int likes;
+  int likes;
 
   PostModel({
     required this.id,
