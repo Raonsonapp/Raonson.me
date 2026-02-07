@@ -1,48 +1,31 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../core/config.dart';
-import 'auth_service.dart';
+import '../core/api.dart';
+import '../core/http_service.dart';
+import '../models/message.dart';
 
 class ChatService {
-  static Map<String, String> _headers() => {
-        'Content-Type': 'application/json',
-        if (AuthService.token != null)
-          'Authorization': 'Bearer ${AuthService.token}',
-      };
-
-  static Future<List> getChats() async {
-    final res = await http
-        .get(
-          Uri.parse('${AppConfig.baseUrl}/chat'),
-          headers: _headers(),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    throw Exception('Chat load error');
+  static Future<List<String>> chats() async {
+    final res = await HttpService.get(Api.chats);
+    final List data = jsonDecode(res.body);
+    return data.map((e) => e.toString()).toList();
   }
 
-  static Future<List> getMessages(String chatId) async {
-    final res = await http
-        .get(
-          Uri.parse('${AppConfig.baseUrl}/chat/$chatId'),
-          headers: _headers(),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    throw Exception('Messages error');
+  static Future<List<Message>> messages(String user) async {
+    final res = await HttpService.get('${Api.messages}/$user');
+    final List data = jsonDecode(res.body);
+    return data.map((e) => Message.fromJson(e)).toList();
   }
 
-  static Future<void> sendMessage(String chatId, String text) async {
-    await http.post(
-      Uri.parse('${AppConfig.baseUrl}/chat/$chatId/send'),
-      headers: _headers(),
-      body: jsonEncode({'text': text}),
+  static Future<void> send({
+    required String to,
+    required String text,
+  }) async {
+    await HttpService.post(
+      Api.sendMessage,
+      body: {
+        'to': to,
+        'text': text,
+      },
     );
   }
 }
