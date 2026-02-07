@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/session.dart';
+import '../../services/chat_service.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -10,86 +10,45 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  String me = '';
-
-  final List<String> users = [
-    'ali',
-    'sara',
-    'john',
-    'david',
-    'emma',
-    'maria',
-  ];
+  List<String> users = [];
+  bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    _init();
+    load();
   }
 
-  Future<void> _init() async {
-    me = await Session.username() ?? '';
-    setState(() {});
+  Future<void> load() async {
+    users = await ChatService.chats();
+    setState(() => loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: _appBar(),
-      body: ListView.builder(
-        itemCount: users.length,
-        itemBuilder: (_, i) {
-          final u = users[i];
-          if (u == me) return const SizedBox();
-          return _chatTile(u);
-        },
-      ),
-    );
-  }
-
-  // ================= APP BAR =================
-  AppBar _appBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0B0F1A),
-      elevation: 0,
-      title: Text(
-        me,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  // ================= CHAT TILE =================
-  Widget _chatTile(String user) {
-    return ListTile(
-      leading: const CircleAvatar(
-        backgroundColor: Colors.blueAccent,
-        child: Icon(Icons.person),
-      ),
-      title: Text(
-        user,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: const Text(
-        'Tap to chat',
-        style: TextStyle(color: Colors.white54),
-      ),
-      trailing: const Icon(Icons.camera_alt_outlined),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(peer: user),
-          ),
-        );
-      },
+      appBar: AppBar(title: const Text('Chats')),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: users.length,
+              itemBuilder: (_, i) => ListTile(
+                leading: CircleAvatar(
+                  child: Text(users[i][0].toUpperCase()),
+                ),
+                title: Text(users[i],
+                    style: const TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(username: users[i]),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
