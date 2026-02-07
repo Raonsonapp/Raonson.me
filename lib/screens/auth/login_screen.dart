@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../../navigation/bottom_nav.dart';
 import 'register_screen.dart';
+import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,87 +11,40 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final username = TextEditingController();
-  final password = TextEditingController();
+  final _user = TextEditingController();
+  final _pass = TextEditingController();
   bool loading = false;
   String? error;
-
-  Future<void> doLogin() async {
-    setState(() {
-      loading = true;
-      error = null;
-    });
-
-    final ok = await AuthService.login(
-      username.text.trim(),
-      password.text.trim(),
-    );
-
-    setState(() => loading = false);
-
-    if (!mounted) return;
-
-    if (ok) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const BottomNav()),
-      );
-    } else {
-      setState(() => error = 'Login failed');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0B0F1A),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(28),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 'Raonson',
-                style: TextStyle(
-                  fontSize: 38,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueAccent,
-                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 30),
 
-              TextField(
-                controller: username,
-                decoration: const InputDecoration(
-                  hintText: 'Username',
-                ),
-              ),
+              _input(_user, 'Username'),
               const SizedBox(height: 16),
+              _input(_pass, 'Password', obscure: true),
 
-              TextField(
-                controller: password,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              if (error != null)
+              if (error != null) ...[
+                const SizedBox(height: 12),
                 Text(error!, style: const TextStyle(color: Colors.red)),
+              ],
 
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: loading ? null : doLogin,
-                  child: loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Log in'),
-                ),
-              ),
+              const SizedBox(height: 24),
+              _loginButton(),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -101,12 +54,66 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 },
-                child: const Text('Create new account'),
+                child: const Text('Create account'),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _input(
+    TextEditingController c,
+    String hint, {
+    bool obscure = false,
+  }) {
+    return TextField(
+      controller: c,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white10,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _loginButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: loading ? null : _login,
+        child: loading
+            ? const CircularProgressIndicator()
+            : const Text('Login'),
+      ),
+    );
+  }
+
+  Future<void> _login() async {
+    setState(() {
+      loading = true;
+      error = null;
+    });
+
+    try {
+      await AuthService.login(_user.text, _pass.text);
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (_) => false,
+      );
+    } catch (e) {
+      setState(() => error = 'Invalid credentials');
+    }
+
+    setState(() => loading = false);
   }
 }
