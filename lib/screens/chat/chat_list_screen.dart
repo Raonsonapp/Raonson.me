@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
 
+/// =======================================
+/// CHAT LIST SCREEN – RAONSON v2 (FULL)
+/// =======================================
+
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
 
@@ -9,12 +13,12 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  final List<_ChatUser> users = List.generate(
-    12,
-    (i) => _ChatUser(
+  final List<_ChatItem> chats = List.generate(
+    10,
+    (i) => _ChatItem(
       username: 'user$i',
       lastMessage: 'Last message from user$i',
-      online: i % 2 == 0,
+      unread: i % 3 == 0,
     ),
   );
 
@@ -22,87 +26,74 @@ class _ChatListScreenState extends State<ChatListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: _appBar(),
-      body: ListView.builder(
-        itemCount: users.length,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0B0F1A),
+        elevation: 0,
+        title: const Text(
+          'Messages',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: ListView.separated(
+        itemCount: chats.length,
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, color: Colors.white10),
         itemBuilder: (context, index) {
-          return _chatTile(users[index]);
+          final chat = chats[index];
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: Colors.blueAccent,
+              child: Text(chat.username[0].toUpperCase()),
+            ),
+            title: Text(
+              chat.username,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              chat.lastMessage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            trailing: chat.unread
+                ? Container(
+                    width: 10,
+                    height: 10,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.blueAccent,
+                    ),
+                  )
+                : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatScreen(
+                    username: chat.username,
+                  ),
+                ),
+              );
+            },
+          );
         },
       ),
     );
   }
-
-  AppBar _appBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0B0F1A),
-      elevation: 0,
-      title: const Text(
-        'Messages',
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      actions: const [
-        Padding(
-          padding: EdgeInsets.only(right: 14),
-          child: Icon(Icons.edit),
-        ),
-      ],
-    );
-  }
-
-  Widget _chatTile(_ChatUser user) {
-    return ListTile(
-      leading: Stack(
-        children: [
-          const CircleAvatar(
-            radius: 24,
-            backgroundColor: Colors.blueAccent,
-            child: Icon(Icons.person),
-          ),
-          if (user.online)
-            Positioned(
-              bottom: 2,
-              right: 2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.greenAccent,
-                ),
-              ),
-            ),
-        ],
-      ),
-      title: Text(
-        user.username,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        user.lastMessage,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Colors.white70),
-      ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(username: user.username),
-          ),
-        );
-      },
-    );
-  }
 }
 
-class _ChatUser {
+/// =======================================
+/// CHAT ITEM MODEL
+/// =======================================
+
+class _ChatItem {
   final String username;
   final String lastMessage;
-  final bool online;
+  final bool unread;
 
-  _ChatUser({
+  _ChatItem({
     required this.username,
     required this.lastMessage,
-    required this.online,
+    required this.unread,
   });
 }
