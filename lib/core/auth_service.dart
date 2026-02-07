@@ -1,29 +1,18 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'api.dart';
+import 'http_client.dart';
 
 class AuthService {
-  static Future<bool> login(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
+  static Future<void> login(String u, String p) async {
+    await HttpClient.post(
+      '${ApiConfig.baseUrl}/auth/login',
+      {'username': u, 'password': p},
     );
-    return res.statusCode == 200;
   }
 
-  static Future<bool> register(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
+  static Future<void> register(String u, String p) async {
+    await HttpClient.post(
+      '${ApiConfig.baseUrl}/auth/register',
+      {'username': u, 'password': p},
     );
-    return res.statusCode == 200;
   }
 }
