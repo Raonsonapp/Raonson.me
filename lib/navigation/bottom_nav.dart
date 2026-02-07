@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/reels/reels_screen.dart';
 import '../screens/search/search_screen.dart';
-import '../screens/chat/chat_list_screen.dart';
 import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -14,12 +13,12 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int _index = 0;
+  int index = 0;
 
-  final List<Widget> _screens = const [
+  final screens = const [
     HomeScreen(),
-    ChatListScreen(),
     ReelsScreen(),
+    SizedBox(), // Add (later)
     SearchScreen(),
     ProfileScreen(),
   ];
@@ -28,9 +27,9 @@ class _BottomNavState extends State<BottomNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      body: _screens[_index],
+      body: screens[index],
       bottomNavigationBar: Container(
-        height: 64,
+        height: 70,
         decoration: BoxDecoration(
           color: const Color(0xFF0B0F1A),
           boxShadow: [
@@ -44,68 +43,54 @@ class _BottomNavState extends State<BottomNav> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navItem(
-              icon: Icons.home,
-              index: 0,
-            ),
-            _navItem(
-              icon: Icons.chat_bubble_outline,
-              activeIcon: Icons.chat_bubble,
-              index: 1,
-            ),
-            _navItem(
-              icon: Icons.play_circle_outline,
-              activeIcon: Icons.play_circle_fill,
-              index: 2,
-              isCenter: true,
-            ),
-            _navItem(
-              icon: Icons.search,
-              index: 3,
-            ),
-            _navItem(
-              icon: Icons.person_outline,
-              activeIcon: Icons.person,
-              index: 4,
-            ),
+            _item(Icons.home_outlined, Icons.home, 0),
+            _item(Icons.play_circle_outline, Icons.play_circle, 1),
+            _addButton(),
+            _item(Icons.search, Icons.search, 3),
+            _item(Icons.person_outline, Icons.person, 4),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem({
-    required IconData icon,
-    IconData? activeIcon,
-    required int index,
-    bool isCenter = false,
-  }) {
-    final bool active = _index == index;
+  Widget _item(IconData icon, IconData active, int i) {
+    final activeTab = index == i;
+    return GestureDetector(
+      onTap: () => setState(() => index = i),
+      child: Icon(
+        activeTab ? active : icon,
+        color: activeTab ? Colors.blueAccent : Colors.white54,
+        size: 26,
+      ),
+    );
+  }
 
+  Widget _addButton() {
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _index = index;
-        });
+        // Add Post (қадами дигар)
       },
       child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: isCenter && active
-            ? BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.6),
-                    blurRadius: 20,
-                    spreadRadius: 4,
-                  ),
-                ],
-              )
-            : null,
-        child: Icon(
-          active ? (activeIcon ?? icon) : icon,
-          size: isCenter ? 34 : 26,
-          color: active ? Colors.blueAccent : Colors.white54,
+        width: 54,
+        height: 54,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Colors.blueAccent, Colors.lightBlue],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(0.6),
+              blurRadius: 20,
+              spreadRadius: 4,
+            ),
+          ],
+        ),
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+          size: 32,
         ),
       ),
     );
