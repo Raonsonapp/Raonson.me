@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/search_service.dart';
+import '../home/home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -9,117 +10,130 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _ctrl = TextEditingController();
-  bool _loading = false;
-  List<dynamic> _users = [];
-  List<dynamic> _posts = [];
+  bool _loading = true;
+  List<dynamic> _items = [];
 
   @override
   void initState() {
     super.initState();
-    _loadExplore();
+    _load();
   }
 
-  Future<void> _loadExplore() async {
-    setState(() => _loading = true);
+  Future<void> _load() async {
     try {
       final data = await SearchService.explore();
       setState(() {
-        _posts = data;
-        _users = [];
+        _items = data;
+        _loading = false;
       });
-    } catch (_) {}
-    setState(() => _loading = false);
-  }
-
-  Future<void> _search(String q) async {
-    setState(() => _loading = true);
-    try {
-      final users = await SearchService.searchUsers(q);
-      final posts = await SearchService.searchPosts(q);
-      setState(() {
-        _users = users;
-        _posts = posts;
-      });
-    } catch (_) {}
-    setState(() => _loading = false);
+    } catch (_) {
+      setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F1424),
       appBar: AppBar(
-        title: TextField(
-          controller: _ctrl,
-          decoration: const InputDecoration(
-            hintText: 'Search',
-            border: InputBorder.none,
-          ),
-          onChanged: (v) {
-            if (v.isEmpty) {
-              _loadExplore();
-            } else {
-              _search(v);
-            }
-          },
-        ),
+        backgroundColor: const Color(0xFF0F1424),
+        elevation: 0,
+        title: _searchBar(),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                if (_users.isNotEmpty) _usersList(),
-                Expanded(child: _grid()),
-              ],
-            ),
-    );
-  }
-
-  // ===== USERS LIST =====
-  Widget _usersList() {
-    return SizedBox(
-      height: 90,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _users.length,
-        itemBuilder: (c, i) {
-          final u = _users[i]['username'] ?? '';
-          return Container(
-            width: 80,
-            margin: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              children: [
-                const CircleAvatar(radius: 26, child: Icon(Icons.person)),
-                const SizedBox(height: 6),
-                Text(
-                  u,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12),
+          : _items.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Nothing here yet',
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(2),
+                    itemCount: _items.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 2,
+                      crossAxisSpacing: 2,
+                    ),
+                    itemBuilder: (c, i) {
+                      return _gridItem(_items[i]);
+                    },
+                  ),
                 ),
-              ],
-            ),
-          );
-        },
+    );
+  }
+
+  // ================= SEARCH BAR =================
+  Widget _searchBar() {
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white10,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.search, size: 18),
+          SizedBox(width: 8),
+          Text(
+            'Search',
+            style: TextStyle(color: Colors.white54),
+          ),
+        ],
       ),
     );
   }
 
-  // ===== POSTS GRID =====
-  Widget _grid() {
-    return GridView.builder(
-      padding: const EdgeInsets.all(2),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 2,
-        mainAxisSpacing: 2,
-      ),
-      itemCount: _posts.length,
-      itemBuilder: (c, i) {
-        final img = _posts[i]['image_url'] ?? '';
-        return img.isEmpty
-            ? const ColoredBox(color: Colors.black12)
-            : Image.network(img, fit: BoxFit.cover);
+  // ================= GRID ITEM =================
+  Widget _gridItem(dynamic item) {
+    final String img = item['image_url'] ?? '';
+    final bool isVideo = item['is_video'] == true;
+
+    return GestureDetector(
+      onTap: () {
+        // version 1 → танҳо preview
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            backgroundColor: Colors.black,
+            insetPadding: EdgeInsets.zero,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Image.network(
+                img,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        );
       },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.network(
+            img,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) =>
+                const Center(child: Icon(Icons.broken_image)),
+          ),
+          if (isVideo)
+            const Positioned(
+              right: 6,
+              top: 6,
+              child: Icon(
+                Icons.play_arrow,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
