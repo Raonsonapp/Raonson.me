@@ -1,25 +1,20 @@
-class PostModel {
-  final String id;
-  final String username;
-  final String caption;
-  final String mediaUrl;
-  final bool isVideo;
+class Post {
+  int likes;
+  bool liked;
+  bool saved;
 
-  PostModel({
-    required this.id,
-    required this.username,
-    required this.caption,
-    required this.mediaUrl,
-    required this.isVideo,
+  Post({
+    this.likes = 0,
+    this.liked = false,
+    this.saved = false,
   });
 
-  factory PostModel.fromJson(Map<String, dynamic> json) {
-    return PostModel(
-      id: json['id'].toString(),
-      username: json['username'] ?? '',
-      caption: json['caption'] ?? '',
-      mediaUrl: json['media_url'] ?? '',
-      isVideo: json['is_video'] ?? false,
-    );
+  void toggleLike() {
+    liked = !liked;
+    likes += liked ? 1 : -1;
+  }
+
+  void toggleSave() {
+    saved = !saved;
   }
 }
