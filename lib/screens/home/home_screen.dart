@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../core/api.dart';
-import '../../core/http_service.dart';
 import '../../core/session.dart';
 import '../../services/post_service.dart';
+import '../../services/post_actions_service.dart';
 import '../create/create_post_screen.dart';
 import '../comments/comments_screen.dart';
+import 'widgets/stories_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,8 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _init() async {
-    final u = await Session.username() ?? '';
-    _me = u;
+    _me = await Session.username() ?? '';
     await _loadPosts();
   }
 
@@ -37,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _posts = data;
         _loading = false;
       });
-    } catch (e) {
+    } catch (_) {
       setState(() => _loading = false);
     }
   }
@@ -45,15 +44,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0F1424),
       appBar: _appBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadPosts,
               child: ListView.builder(
-                itemCount: _posts.length,
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: _posts.length + 1,
                 itemBuilder: (context, index) {
-                  return _postCard(_posts[index]);
+                  if (index == 0) {
+                    // ===== STORIES BAR =====
+                    return const StoriesBar();
+                  }
+                  return _postCard(_posts[index - 1]);
                 },
               ),
             ),
@@ -63,12 +68,17 @@ class _HomeScreenState extends State<HomeScreen> {
   // ================= APP BAR =================
   PreferredSizeWidget _appBar() {
     return AppBar(
+      backgroundColor: const Color(0xFF0F1424),
+      elevation: 0,
       title: const Text(
         'Raonson',
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 22,
+        ),
       ),
       leading: IconButton(
-        icon: const Icon(Icons.add_box_outlined),
+        icon: const Icon(Icons.add_box_outlined, size: 26),
         onPressed: () async {
           final ok = await Navigator.push(
             context,
@@ -79,8 +89,10 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.smart_toy), // Jarvis
-          onPressed: () {},
+          icon: const Icon(Icons.smart_toy, size: 26), // Jarvis
+          onPressed: () {
+            // future AI / Jarvis screen
+          },
         ),
       ],
     );
@@ -88,22 +100,30 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ================= POST CARD =================
   Widget _postCard(dynamic post) {
-    final int postId = post['id'];
+    final String postId = post['id'].toString();
     final String username = post['username'] ?? '';
     final String caption = post['caption'] ?? '';
     final String imageUrl = post['image_url'] ?? '';
     final int likes = post['likes'] ?? 0;
+    final bool liked = post['liked'] ?? false;
+    final bool saved = post['saved'] ?? false;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       color: const Color(0xFF0F1424),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // ===== HEADER =====
           ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(username),
+            leading: const CircleAvatar(
+              backgroundColor: Colors.white24,
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+            title: Text(
+              username,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             trailing: const Icon(Icons.more_vert),
           ),
 
@@ -114,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const SizedBox(
-                height: 250,
+                height: 260,
                 child: Center(child: Icon(Icons.broken_image)),
               ),
             ),
@@ -125,9 +145,16 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.favorite_border),
+                  icon: Icon(
+                    liked ? Icons.favorite : Icons.favorite_border,
+                    color: liked ? Colors.red : Colors.white,
+                  ),
                   onPressed: () async {
-                    await PostService.like(postId);
+                    if (liked) {
+                      await PostActionsService.unlike(postId, _me);
+                    } else {
+                      await PostActionsService.like(postId, _me);
+                    }
                     _loadPosts();
                   },
                 ),
@@ -144,12 +171,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () {},
+                  onPressed: () {
+                    // system share (баъд)
+                  },
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.bookmark_border),
-                  onPressed: () {},
+                  icon: Icon(
+                    saved ? Icons.bookmark : Icons.bookmark_border,
+                  ),
+                  onPressed: () async {
+                    if (saved) {
+                      await PostActionsService.unsave(postId, _me);
+                    } else {
+                      await PostActionsService.save(postId, _me);
+                    }
+                    _loadPosts();
+                  },
                 ),
               ],
             ),
@@ -161,7 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 '$likes likes',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
