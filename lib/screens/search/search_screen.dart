@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../models/post_model.dart';
+import '../../services/post_service.dart';
 
-/// ===============================
-/// SEARCH SCREEN – RAONSON v2
-/// Instagram-style explore grid
-/// ===============================
+/// =======================================
+/// SEARCH SCREEN – RAONSON v2 (FULL)
+/// =======================================
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -13,212 +14,222 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _search = TextEditingController();
 
-  // Mock explore data (ба сервер иваз мешавад)
-  final List<_ExploreItem> items = List.generate(
-    30,
-    (i) => _ExploreItem(id: i),
-  );
+  List<PostModel> allPosts = [];
+  List<PostModel> filtered = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _search.addListener(_filter);
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _search.dispose();
     super.dispose();
   }
 
+  // -------------------------------
+  // LOAD POSTS
+  // -------------------------------
+  Future<void> _load() async {
+    try {
+      final data = await PostService.getPosts();
+      setState(() {
+        allPosts = data;
+        filtered = data;
+        loading = false;
+      });
+    } catch (_) {
+      setState(() => loading = false);
+    }
+  }
+
+  // -------------------------------
+  // FILTER
+  // -------------------------------
+  void _filter() {
+    final q = _search.text.toLowerCase();
+    setState(() {
+      filtered = allPosts
+          .where((p) =>
+              p.caption.toLowerCase().contains(q) ||
+              p.username.toLowerCase().contains(q))
+          .toList();
+    });
+  }
+
+  // -------------------------------
+  // BUILD
+  // -------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _searchBar(),
-            const SizedBox(height: 8),
-            Expanded(child: _grid()),
-          ],
-        ),
-      ),
+      appBar: _appBar(),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : _grid(),
     );
   }
 
   // -------------------------------
-  // SEARCH BAR
+  // APP BAR (SEARCH FIELD)
   // -------------------------------
-  Widget _searchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      child: Container(
-        height: 44,
+  PreferredSizeWidget _appBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF0B0F1A),
+      elevation: 0,
+      title: Container(
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
+          color: Colors.white10,
           borderRadius: BorderRadius.circular(14),
-          gradient: LinearGradient(
-            colors: [
-              Colors.blueAccent.withOpacity(0.25),
-              Colors.cyanAccent.withOpacity(0.15),
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blueAccent.withOpacity(0.4),
-              blurRadius: 10,
-            ),
-          ],
         ),
         child: TextField(
-          controller: _controller,
-          style: const TextStyle(color: Colors.white),
+          controller: _search,
           decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search, color: Colors.white70),
+            icon: Icon(Icons.search),
             hintText: 'Search',
-            hintStyle: TextStyle(color: Colors.white54),
             border: InputBorder.none,
           ),
-          onChanged: (value) {
-            // TODO: search logic (API)
-          },
         ),
       ),
     );
   }
 
   // -------------------------------
-  // GRID VIEW
+  // GRID
   // -------------------------------
   Widget _grid() {
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Text(
+          'No results',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
     return GridView.builder(
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(2),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 4,
-        crossAxisSpacing: 4,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
       ),
-      itemCount: items.length,
+      itemCount: filtered.length,
       itemBuilder: (context, index) {
-        return _gridItem(items[index]);
+        return _GridItem(post: filtered[index]);
       },
     );
   }
+}
 
-  Widget _gridItem(_ExploreItem item) {
+/// =======================================
+/// GRID ITEM
+/// =======================================
+
+class _GridItem extends StatelessWidget {
+  final PostModel post;
+  const _GridItem({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        _openPreview(item);
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1C2333),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Center(
-          child: Icon(
-            Icons.image,
-            color: Colors.white24,
-            size: 32,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // -------------------------------
-  // PREVIEW (BOTTOM SHEET)
-  // -------------------------------
-  void _openPreview(_ExploreItem item) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF0B0F1A),
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) {
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
-          padding: const EdgeInsets.only(top: 12),
-          child: Column(
-            children: [
-              _sheetHandle(),
-              const SizedBox(height: 12),
-              _previewContent(item),
-            ],
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => _PostPreview(post: post),
           ),
         );
       },
-    );
-  }
-
-  Widget _sheetHandle() {
-    return Container(
-      width: 40,
-      height: 4,
-      decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius: BorderRadius.circular(2),
-      ),
-    );
-  }
-
-  Widget _previewContent(_ExploreItem item) {
-    return Expanded(
-      child: ListView(
-        children: [
-          _previewMedia(),
-          _previewActions(),
-          _previewCaption(),
-        ],
-      ),
-    );
-  }
-
-  Widget _previewMedia() {
-    return Container(
-      height: 360,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
+      child: Container(
         color: const Color(0xFF1C2333),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(
-        child: Icon(Icons.image, size: 90, color: Colors.white24),
-      ),
-    );
-  }
-
-  Widget _previewActions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: const [
-          Icon(Icons.favorite_border),
-          SizedBox(width: 18),
-          Icon(Icons.chat_bubble_outline),
-          SizedBox(width: 18),
-          Icon(Icons.send),
-          Spacer(),
-          Icon(Icons.bookmark_border),
-        ],
-      ),
-    );
-  }
-
-  Widget _previewCaption() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        'Explore post caption example for Raonson.',
-        style: TextStyle(color: Colors.white70),
+        child: const Center(
+          child: Icon(Icons.image, color: Colors.white24),
+        ),
       ),
     );
   }
 }
 
-/// ===============================
-/// EXPLORE ITEM MODEL
-/// ===============================
-class _ExploreItem {
-  final int id;
+/// =======================================
+/// POST PREVIEW (FULLSCREEN)
+/// =======================================
 
-  _ExploreItem({required this.id});
+class _PostPreview extends StatelessWidget {
+  final PostModel post;
+  const _PostPreview({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Container(
+                width: double.infinity,
+                color: const Color(0xFF1C2333),
+                child: const Icon(
+                  Icons.image,
+                  size: 120,
+                  color: Colors.white24,
+                ),
+              ),
+            ),
+          ),
+          _actions(),
+          _caption(),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _actions() {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.favorite_border),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: const Icon(Icons.chat_bubble_outline),
+          onPressed: () {},
+        ),
+        IconButton(
+          icon: const Icon(Icons.send),
+          onPressed: () {},
+        ),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.bookmark_border),
+          onPressed: () {},
+        ),
+      ],
+    );
+  }
+
+  Widget _caption() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        post.caption,
+        style: const TextStyle(color: Colors.white70),
+      ),
+    );
+  }
 }
