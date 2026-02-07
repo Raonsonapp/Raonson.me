@@ -1,17 +1,28 @@
 class Api {
-  static const String baseUrl =
-      'https://raonson-me.onrender.com';
+  // ===== BASE =====
+  static const String baseUrl = 'https://raonson-me.onrender.com';
 
-  // Auth
-  static const String register = '/auth/register';
-  static const String login = '/auth/login';
+  // ===== AUTH =====
+  static const String register = '$baseUrl/auth/register';
+  static const String login = '$baseUrl/auth/login';
 
-  // Posts
-  static const String posts = '/posts';
+  // ===== POSTS =====
+  static const String posts = '$baseUrl/posts';
+  static String postByUser(String username) =>
+      '$baseUrl/posts/$username';
 
-  // Reels
-  static const String reels = '/reels';
+  // ===== LIKES =====
+  static String likePost(int postId) =>
+      '$baseUrl/posts/$postId/like';
 
-  // Chat
-  static const String chats = '/chats';
+  // ===== COMMENTS =====
+  static String comments(int postId) =>
+      '$baseUrl/posts/$postId/comments';
+
+  // ===== CHATS =====
+  static String chats(String username) =>
+      '$baseUrl/chats/$username';
+
+  static String messages(String chatId) =>
+      '$baseUrl/chats/$chatId/messages';
 }
