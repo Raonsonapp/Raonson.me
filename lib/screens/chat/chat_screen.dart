@@ -1,10 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../core/api.dart';
+import '../../core/http_client.dart';
 
 class ChatScreen extends StatefulWidget {
   final String username;
-
   const ChatScreen({super.key, required this.username});
 
   @override
@@ -13,51 +12,34 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   List messages = [];
-  final TextEditingController controller = TextEditingController();
-  bool sending = false;
+  final controller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    fetchMessages();
+    loadMessages();
   }
 
-  Future<void> fetchMessages() async {
-    try {
-      final res = await http.get(
-        Uri.parse(
-          'https://raonson-me.onrender.com/chat/${widget.username}',
-        ),
-      );
-
-      if (res.statusCode == 200) {
-        setState(() {
-          messages = jsonDecode(res.body);
-        });
-      }
-    } catch (_) {}
+  Future<void> loadMessages() async {
+    final data = await HttpClient.get(
+      '${ApiConfig.baseUrl}/chat/${widget.username}',
+    );
+    setState(() => messages = data);
   }
 
-  Future<void> sendMessage() async {
-    if (controller.text.trim().isEmpty) return;
+  Future<void> send() async {
+    if (controller.text.isEmpty) return;
 
-    setState(() => sending = true);
+    await HttpClient.post(
+      '${ApiConfig.baseUrl}/chat/send',
+      {
+        'to': widget.username,
+        'message': controller.text,
+      },
+    );
 
-    try {
-      await http.post(
-        Uri.parse('https://raonson-me.onrender.com/chat/send'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'to': widget.username,
-          'message': controller.text.trim(),
-        }),
-      );
-
-      controller.clear();
-      fetchMessages();
-    } catch (_) {}
-
-    setState(() => sending = false);
+    controller.clear();
+    loadMessages();
   }
 
   @override
@@ -70,11 +52,10 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Row(
           children: [
             const CircleAvatar(
-              radius: 14,
               backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, size: 14),
+              child: Icon(Icons.person, color: Colors.white),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Text(widget.username),
           ],
         ),
@@ -83,17 +64,18 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(12),
+              reverse: true,
               itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                final isMe = msg['me'] == true;
+              itemBuilder: (c, i) {
+                final m = messages[i];
+                final isMe = m['me'] == true;
 
                 return Align(
                   alignment:
                       isMe ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 10),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: isMe
@@ -102,13 +84,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       borderRadius: BorderRadius.circular(14),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blue.withOpacity(0.2),
-                          blurRadius: 8,
+                          color: Colors.blueAccent.withOpacity(0.25),
+                          blurRadius: 12,
                         ),
                       ],
                     ),
                     child: Text(
-                      msg['message'] ?? '',
+                      m['text'],
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),
@@ -117,10 +99,12 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
 
-          // ===== INPUT =====
+          // INPUT
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            color: const Color(0xFF0B0F1A),
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0B0F1A),
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -129,14 +113,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       hintText: 'Message...',
-                      hintStyle: TextStyle(color: Colors.white54),
+                      hintStyle: TextStyle(color: Colors.white38),
                       border: InputBorder.none,
                     ),
                   ),
                 ),
                 IconButton(
-                  onPressed: sending ? null : sendMessage,
                   icon: const Icon(Icons.send, color: Colors.blueAccent),
+                  onPressed: send,
                 ),
               ],
             ),
