@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/api.dart';
 
 class AuthService {
-  static const String baseUrl = 'https://raonson-me.onrender.com';
-
   static Future<bool> login(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -14,17 +13,12 @@ class AuthService {
       }),
     );
 
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-      return data.containsKey('token');
-    }
-
-    return false;
+    return response.statusCode == 200;
   }
 
   static Future<bool> register(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/register'),
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -32,6 +26,6 @@ class AuthService {
       }),
     );
 
-    return res.statusCode == 200;
+    return response.statusCode == 200;
   }
 }
