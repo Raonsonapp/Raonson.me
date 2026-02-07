@@ -1,34 +1,64 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'api.dart';
-import 'session.dart';
 
 class HttpService {
-  static Future<http.Response> get(String path) async {
-    final token = await Session.getToken();
+  static const Duration _timeout = Duration(seconds: 15);
 
-    return await http.get(
-      Uri.parse(Api.baseUrl + path),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-    );
+  // ===== GET =====
+  static Future<dynamic> get(String url) async {
+    try {
+      final res = await http.get(
+        Uri.parse(url),
+        headers: _headers(),
+      ).timeout(_timeout);
+
+      return _handleResponse(res);
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timeout');
+    }
   }
 
-  static Future<http.Response> post(
-    String path, {
-    Map<String, dynamic>? body,
-  }) async {
-    final token = await Session.getToken();
+  // ===== POST =====
+  static Future<dynamic> post(String url, Map<String, dynamic> body) async {
+    try {
+      final res = await http.post(
+        Uri.parse(url),
+        headers: _headers(),
+        body: jsonEncode(body),
+      ).timeout(_timeout);
 
-    return await http.post(
-      Uri.parse(Api.baseUrl + path),
-      headers: {
-        'Content-Type': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode(body ?? {}),
-    );
+      return _handleResponse(res);
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timeout');
+    }
+  }
+
+  // ===== HEADERS =====
+  static Map<String, String> _headers() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+  }
+
+  // ===== RESPONSE HANDLER =====
+  static dynamic _handleResponse(http.Response res) {
+    final status = res.statusCode;
+
+    if (res.body.isEmpty) return null;
+
+    final data = jsonDecode(res.body);
+
+    if (status >= 200 && status < 300) {
+      return data;
+    } else {
+      // сервер хатогиро худ менависад
+      throw Exception(data.toString());
+    }
   }
 }
