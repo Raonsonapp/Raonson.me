@@ -22,12 +22,15 @@ jobs:
         run: |
           flutter create raonson
           rm -rf raonson/lib
+          rm -rf raonson/assets || true
           cp -r lib raonson/lib
           cp pubspec.yaml raonson/pubspec.yaml
 
+      # 🔥 ИН ҶО МО ANDROID INTERNET PERMISSION МЕГУЗОРЕМ
       - name: Add INTERNET permission
         run: |
-          sed -i '/<manifest/a\    <uses-permission android:name="android.permission.INTERNET"/>' raonson/android/app/src/main/AndroidManifest.xml
+          MANIFEST=raonson/android/app/src/main/AndroidManifest.xml
+          sed -i '/<manifest/a <uses-permission android:name="android.permission.INTERNET"/>' $MANIFEST
 
       - name: Get dependencies
         run: |
