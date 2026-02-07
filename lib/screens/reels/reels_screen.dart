@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/api.dart';
 import '../../core/http_service.dart';
+import '../../services/post_service.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -12,14 +13,15 @@ class ReelsScreen extends StatefulWidget {
 class _ReelsScreenState extends State<ReelsScreen> {
   bool _loading = true;
   List<dynamic> _reels = [];
+  final Set<int> _saved = {};
 
   @override
   void initState() {
     super.initState();
-    _loadReels();
+    _load();
   }
 
-  Future<void> _loadReels() async {
+  Future<void> _load() async {
     try {
       final data = await HttpService.get(Api.posts);
       setState(() {
@@ -39,30 +41,27 @@ class _ReelsScreenState extends State<ReelsScreen> {
           : PageView.builder(
               scrollDirection: Axis.vertical,
               itemCount: _reels.length,
-              itemBuilder: (c, i) => _reelItem(_reels[i]),
+              itemBuilder: (_, i) => _item(_reels[i]),
             ),
     );
   }
 
-  Widget _reelItem(dynamic p) {
-    final username = p['username'] ?? '';
-    final caption = p['caption'] ?? '';
-    final imageUrl = p['image_url'] ?? '';
+  Widget _item(dynamic p) {
+    final int id = p['id'];
+    final String u = p['username'] ?? '';
+    final String c = p['caption'] ?? '';
+    final String img = p['image_url'] ?? '';
+    final int likes = p['likes'] ?? 0;
+
+    final bool isSaved = _saved.contains(id);
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        // media
-        imageUrl.isNotEmpty
-            ? Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                    const Center(child: Icon(Icons.broken_image)),
-              )
+        img.isNotEmpty
+            ? Image.network(img, fit: BoxFit.cover)
             : const ColoredBox(color: Colors.black),
 
-        // gradient
         Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -73,7 +72,6 @@ class _ReelsScreenState extends State<ReelsScreen> {
           ),
         ),
 
-        // left info
         Positioned(
           left: 12,
           bottom: 24,
@@ -81,48 +79,51 @@ class _ReelsScreenState extends State<ReelsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('@$username',
+              Text('@$u',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 6),
-              Text(caption, maxLines: 3, overflow: TextOverflow.ellipsis),
+              Text(c, maxLines: 3, overflow: TextOverflow.ellipsis),
             ],
           ),
         ),
 
-        // right actions
         Positioned(
           right: 12,
           bottom: 60,
           child: Column(
-            children: const [
-              _ReelAction(icon: Icons.favorite_border, label: 'Like'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.mode_comment_outlined, label: 'Comment'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.send, label: 'Share'),
-              SizedBox(height: 18),
-              _ReelAction(icon: Icons.bookmark_border, label: 'Save'),
+            children: [
+              IconButton(
+                icon: const Icon(Icons.favorite_border, size: 28),
+                onPressed: () async {
+                  await PostService.like(id);
+                  _load();
+                },
+              ),
+              Text('$likes'),
+              const SizedBox(height: 18),
+              const Icon(Icons.mode_comment_outlined, size: 28),
+              const SizedBox(height: 18),
+              const Icon(Icons.send, size: 28),
+              const SizedBox(height: 18),
+              IconButton(
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  size: 28,
+                ),
+                onPressed: () {
+                  setState(() {
+                    if (isSaved) {
+                      _saved.remove(id);
+                    } else {
+                      _saved.add(id);
+                    }
+                  });
+                },
+              ),
             ],
           ),
         ),
-      ],
-    );
-  }
-}
-
-class _ReelAction extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _ReelAction({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 28),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }
