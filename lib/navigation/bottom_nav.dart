@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/chat/chat_list_screen.dart';
 import '../screens/reels/reels_screen.dart';
+import '../screens/search/search_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -17,7 +18,7 @@ class _BottomNavState extends State<BottomNav> {
     HomeScreen(),
     ChatListScreen(),
     ReelsScreen(),
-    _SearchPlaceholder(),
+    SearchScreen(),
     ProfileScreen(),
   ];
 
