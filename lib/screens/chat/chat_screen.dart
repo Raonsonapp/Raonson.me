@@ -1,35 +1,39 @@
 import 'package:flutter/material.dart';
-
-/// =======================================
-/// CHAT DETAIL SCREEN – RAONSON v2 (FULL)
-/// =======================================
+import '../../services/socket_service.dart';
+import '../../core/session.dart';
 
 class ChatScreen extends StatefulWidget {
-  final String username;
-
-  const ChatScreen({
-    super.key,
-    required this.username,
-  });
+  final String peer;
+  const ChatScreen({super.key, required this.peer});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final TextEditingController _input = TextEditingController();
-  final ScrollController _scroll = ScrollController();
+  final _input = TextEditingController();
+  final _messages = <String>[];
+  final _socket = SocketService();
+  String me = '';
 
-  final List<_Message> messages = [
-    _Message(text: 'Hello 👋', mine: false),
-    _Message(text: 'Hi!', mine: true),
-    _Message(text: 'How are you?', mine: false),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    me = await Session.username() ?? 'user';
+    await _socket.connect(me);
+    _socket.messages().listen((data) {
+      setState(() => _messages.add(data));
+    });
+  }
 
   @override
   void dispose() {
     _input.dispose();
-    _scroll.dispose();
+    _socket.dispose();
     super.dispose();
   }
 
@@ -39,123 +43,69 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, size: 16),
-            ),
-            const SizedBox(width: 8),
-            Text(widget.username),
-          ],
-        ),
+        title: Text(widget.peer),
       ),
       body: Column(
         children: [
-          Expanded(child: _messages()),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12),
+              itemCount: _messages.length,
+              itemBuilder: (_, i) {
+                final parts = _messages[i].split(':');
+                final from = parts.first;
+                final text = parts.sublist(1).join(':');
+                final mine = from == me;
+                return Align(
+                  alignment:
+                      mine ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: mine
+                          ? Colors.blueAccent
+                          : const Color(0xFF1C2333),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(text),
+                  ),
+                );
+              },
+            ),
+          ),
           _inputBar(),
         ],
       ),
     );
   }
 
-  // -------------------------------
-  // MESSAGES LIST
-  // -------------------------------
-  Widget _messages() {
-    return ListView.builder(
-      controller: _scroll,
-      padding: const EdgeInsets.all(12),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final msg = messages[index];
-        return Align(
-          alignment:
-              msg.mine ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 4),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 10,
-            ),
-            constraints: const BoxConstraints(maxWidth: 280),
-            decoration: BoxDecoration(
-              color: msg.mine
-                  ? Colors.blueAccent
-                  : const Color(0xFF1C2333),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Text(msg.text),
-          ),
-        );
-      },
-    );
-  }
-
-  // -------------------------------
-  // INPUT BAR
-  // -------------------------------
   Widget _inputBar() {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _input,
-                decoration: InputDecoration(
-                  hintText: 'Message...',
-                  filled: true,
-                  fillColor: Colors.white10,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _input,
+              decoration: const InputDecoration(
+                hintText: 'Message...',
+                filled: true,
+                fillColor: Colors.white10,
+                border: InputBorder.none,
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.send),
-              onPressed: _send,
-            ),
-          ],
-        ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: () {
+              if (_input.text.trim().isEmpty) return;
+              _socket.send(widget.peer, _input.text.trim());
+              _input.clear();
+            },
+          ),
+        ],
       ),
     );
   }
-
-  // -------------------------------
-  // SEND MESSAGE
-  // -------------------------------
-  void _send() {
-    if (_input.text.trim().isEmpty) return;
-
-    setState(() {
-      messages.add(
-        _Message(text: _input.text.trim(), mine: true),
-      );
-      _input.clear();
-    });
-
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scroll.jumpTo(_scroll.position.maxScrollExtent);
-    });
-  }
-}
-
-/// =======================================
-/// MESSAGE MODEL
-/// =======================================
-
-class _Message {
-  final String text;
-  final bool mine;
-
-  _Message({
-    required this.text,
-    required this.mine,
-  });
 }
