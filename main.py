@@ -4,51 +4,42 @@ import uuid
 
 app = FastAPI()
 
-# ===== FAKE DATABASE =====
-users_db = {}
+users = {}
+sessions = {}
 
-# ===== MODELS =====
-class RegisterRequest(BaseModel):
+class AuthRequest(BaseModel):
     username: str
     password: str
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-# ===== ROOT =====
-@app.get("/")
-def root():
-    return {"status": "Raonson API running"}
 
 @app.get("/health")
 def health():
-    return {"health": "ok"}
+    return {"status": "ok"}
 
-# ===== AUTH =====
 @app.post("/auth/register")
-def register(data: RegisterRequest):
-    if data.username in users_db:
-        raise HTTPException(status_code=400, detail="User already exists")
-
-    users_db[data.username] = {
-        "password": data.password
-    }
-
+def register(data: AuthRequest):
+    if data.username in users:
+        raise HTTPException(status_code=400, detail="User exists")
+    users[data.username] = data.password
+    token = str(uuid.uuid4())
+    sessions[token] = data.username
     return {
-        "message": "Registered successfully"
+        "token": token,
+        "user": {"username": data.username}
     }
 
 @app.post("/auth/login")
-def login(data: LoginRequest):
-    user = users_db.get(data.username)
-
-    if not user or user["password"] != data.password:
+def login(data: AuthRequest):
+    if users.get(data.username) != data.password:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-
     token = str(uuid.uuid4())
-
+    sessions[token] = data.username
     return {
         "token": token,
-        "username": data.username
+        "user": {"username": data.username}
     }
+
+@app.get("/me")
+def me(token: str):
+    if token not in sessions:
+        raise HTTPException(status_code=401)
+    return {"username": sessions[token]}
