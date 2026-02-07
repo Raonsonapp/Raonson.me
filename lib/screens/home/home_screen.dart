@@ -6,72 +6,87 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
-        title: const Text(
-          'Raonson',
-          style: TextStyle(
-            color: Colors.blueAccent,
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: const [
-          Icon(Icons.notifications_none, color: Colors.white),
-          SizedBox(width: 12),
-        ],
-      ),
+      appBar: _appBar(),
       body: ListView(
-        children: const [
-          _Stories(),
-          SizedBox(height: 12),
-          _PostCard(),
-          _PostCard(),
+        padding: EdgeInsets.zero,
+        children: [
+          _stories(),
+          const SizedBox(height: 8),
+          _postCard(),
+          _postCard(),
         ],
       ),
     );
   }
-}
 
-//
-// ================= STORIES =================
-//
-class _Stories extends StatelessWidget {
-  const _Stories();
+  // ───────────────── APP BAR ─────────────────
+  AppBar _appBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF0B0F1A),
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.add, size: 28),
+        onPressed: () {},
+      ),
+      centerTitle: true,
+      title: const Text(
+        'Raonson',
+        style: TextStyle(
+          fontFamily: 'cursive',
+          fontSize: 26,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: CircleAvatar(
+            radius: 18,
+            backgroundColor: Colors.blueAccent,
+            child: const Icon(Icons.smart_toy, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  // ───────────────── STORIES ─────────────────
+  Widget _stories() {
     return SizedBox(
-      height: 96,
+      height: 105,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: 8,
-        itemBuilder: (c, i) {
+        itemCount: 6,
+        itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Column(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Colors.blueAccent, Colors.lightBlue],
+                    gradient: const LinearGradient(
+                      colors: [Colors.blue, Colors.cyanAccent],
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueAccent.withOpacity(0.6),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
                   child: const CircleAvatar(
                     radius: 28,
-                    backgroundColor: Color(0xFF0B0F1A),
-                    child: Icon(Icons.person, color: Colors.white),
+                    backgroundColor: Color(0xFF1C2333),
+                    child: Icon(Icons.person, size: 30),
                   ),
                 ),
                 const SizedBox(height: 6),
                 const Text(
                   'user',
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(fontSize: 12),
                 ),
               ],
             ),
@@ -80,91 +95,62 @@ class _Stories extends StatelessWidget {
       ),
     );
   }
-}
 
-//
-// ================= POST CARD =================
-//
-class _PostCard extends StatelessWidget {
-  const _PostCard();
+  // ───────────────── POST ─────────────────
+  Widget _postCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        ListTile(
+          leading: const CircleAvatar(
+            backgroundColor: Colors.blueAccent,
+            child: Icon(Icons.person),
+          ),
+          title: const Text('username'),
+          trailing: const Icon(Icons.more_vert),
+        ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF11162A),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.18),
-            blurRadius: 22,
-            offset: const Offset(0, 6),
+        // Image
+        Container(
+          height: 360,
+          margin: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: const Color(0xFF1C2333),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // HEADER
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: const [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.blueAccent,
-                  child: Icon(Icons.person, color: Colors.white, size: 18),
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'username',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Spacer(),
-                Icon(Icons.more_vert, color: Colors.white54),
-              ],
-            ),
+          child: const Center(
+            child: Icon(Icons.image, size: 80, color: Colors.white24),
           ),
+        ),
 
-          // IMAGE
-          Container(
-            height: 240,
-            color: Colors.black,
-            child: const Center(
-              child: Icon(Icons.image, size: 80, color: Colors.white24),
-            ),
+        // Actions
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: const [
+              Icon(Icons.favorite_border),
+              SizedBox(width: 16),
+              Icon(Icons.chat_bubble_outline),
+              SizedBox(width: 16),
+              Icon(Icons.send),
+              Spacer(),
+              Icon(Icons.bookmark_border),
+            ],
           ),
+        ),
 
-          // ACTIONS
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-            child: Row(
-              children: const [
-                Icon(Icons.favorite_border, color: Colors.white),
-                SizedBox(width: 18),
-                Icon(Icons.chat_bubble_outline, color: Colors.white),
-                SizedBox(width: 18),
-                Icon(Icons.send, color: Colors.white),
-                Spacer(),
-                Icon(Icons.bookmark_border, color: Colors.white),
-              ],
-            ),
+        // Caption
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            'This is a caption example for Raonson post.',
+            style: TextStyle(color: Colors.white70),
           ),
+        ),
 
-          // CAPTION
-          const Padding(
-            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Text(
-              'This is a caption example for Raonson post.',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        ],
-      ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
