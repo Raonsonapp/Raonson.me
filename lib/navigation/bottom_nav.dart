@@ -14,13 +14,13 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int index = 0;
+  int _index = 0;
 
-  final List<Widget> screens = const [
+  final List<Widget> _screens = const [
     HomeScreen(),
+    ChatListScreen(),
     ReelsScreen(),
     SearchScreen(),
-    ChatListScreen(),
     ProfileScreen(),
   ];
 
@@ -28,42 +28,85 @@ class _BottomNavState extends State<BottomNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      body: screens[index],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (i) => setState(() => index = i),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF0B0F1A),
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.white38,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.play_circle_outline),
-            activeIcon: Icon(Icons.play_circle),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            activeIcon: Icon(Icons.chat_bubble),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
+      body: _screens[_index],
+      bottomNavigationBar: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B0F1A),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(0.35),
+              blurRadius: 25,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _navItem(
+              icon: Icons.home,
+              index: 0,
+            ),
+            _navItem(
+              icon: Icons.chat_bubble_outline,
+              activeIcon: Icons.chat_bubble,
+              index: 1,
+            ),
+            _navItem(
+              icon: Icons.play_circle_outline,
+              activeIcon: Icons.play_circle_fill,
+              index: 2,
+              isCenter: true,
+            ),
+            _navItem(
+              icon: Icons.search,
+              index: 3,
+            ),
+            _navItem(
+              icon: Icons.person_outline,
+              activeIcon: Icons.person,
+              index: 4,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    IconData? activeIcon,
+    required int index,
+    bool isCenter = false,
+  }) {
+    final bool active = _index == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _index = index;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: isCenter && active
+            ? BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.6),
+                    blurRadius: 20,
+                    spreadRadius: 4,
+                  ),
+                ],
+              )
+            : null,
+        child: Icon(
+          active ? (activeIcon ?? icon) : icon,
+          size: isCenter ? 34 : 26,
+          color: active ? Colors.blueAccent : Colors.white54,
+        ),
       ),
     );
   }
