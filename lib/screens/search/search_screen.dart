@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/user.dart';
-import '../../services/user_service.dart';
+import '../../services/search_service.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -10,50 +9,117 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _q = TextEditingController();
-  List<UserModel> users = [];
-  bool loading = false;
+  final TextEditingController _ctrl = TextEditingController();
+  bool _loading = false;
+  List<dynamic> _users = [];
+  List<dynamic> _posts = [];
 
-  Future<void> search() async {
-    setState(() => loading = true);
-    users = await UserService.search(_q.text.trim());
-    setState(() => loading = false);
+  @override
+  void initState() {
+    super.initState();
+    _loadExplore();
+  }
+
+  Future<void> _loadExplore() async {
+    setState(() => _loading = true);
+    try {
+      final data = await SearchService.explore();
+      setState(() {
+        _posts = data;
+        _users = [];
+      });
+    } catch (_) {}
+    setState(() => _loading = false);
+  }
+
+  Future<void> _search(String q) async {
+    setState(() => _loading = true);
+    try {
+      final users = await SearchService.searchUsers(q);
+      final posts = await SearchService.searchPosts(q);
+      setState(() {
+        _users = users;
+        _posts = posts;
+      });
+    } catch (_) {}
+    setState(() => _loading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         title: TextField(
-          controller: _q,
-          onSubmitted: (_) => search(),
+          controller: _ctrl,
           decoration: const InputDecoration(
             hintText: 'Search',
             border: InputBorder.none,
           ),
+          onChanged: (v) {
+            if (v.isEmpty) {
+              _loadExplore();
+            } else {
+              _search(v);
+            }
+          },
         ),
       ),
-      body: loading
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : GridView.builder(
-              padding: const EdgeInsets.all(8),
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-              ),
-              itemCount: users.length,
-              itemBuilder: (_, i) => Container(
-                color: Colors.white10,
-                alignment: Alignment.center,
-                child: Text(
-                  users[i].username,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
+          : Column(
+              children: [
+                if (_users.isNotEmpty) _usersList(),
+                Expanded(child: _grid()),
+              ],
             ),
+    );
+  }
+
+  // ===== USERS LIST =====
+  Widget _usersList() {
+    return SizedBox(
+      height: 90,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _users.length,
+        itemBuilder: (c, i) {
+          final u = _users[i]['username'] ?? '';
+          return Container(
+            width: 80,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              children: [
+                const CircleAvatar(radius: 26, child: Icon(Icons.person)),
+                const SizedBox(height: 6),
+                Text(
+                  u,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ===== POSTS GRID =====
+  Widget _grid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(2),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 2,
+        mainAxisSpacing: 2,
+      ),
+      itemCount: _posts.length,
+      itemBuilder: (c, i) {
+        final img = _posts[i]['image_url'] ?? '';
+        return img.isEmpty
+            ? const ColoredBox(color: Colors.black12)
+            : Image.network(img, fit: BoxFit.cover);
+      },
     );
   }
 }
