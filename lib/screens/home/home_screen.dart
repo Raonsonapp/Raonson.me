@@ -1,8 +1,42 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../services/post_service.dart';
+import 'package:http/http.dart' as http;
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List posts = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPosts();
+  }
+
+  Future<void> fetchPosts() async {
+    try {
+      final res = await http.get(
+        Uri.parse('https://raonson-me.onrender.com/posts'),
+      );
+
+      if (res.statusCode == 200) {
+        setState(() {
+          posts = jsonDecode(res.body);
+          loading = false;
+        });
+      } else {
+        setState(() => loading = false);
+      }
+    } catch (_) {
+      setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,78 +45,134 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: const Text('Raonson'),
+        title: const Text(
+          'Raonson',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: Icon(Icons.add_box_outlined),
+          ),
+        ],
       ),
-      body: FutureBuilder<List>(
-        future: PostService.getFeed(),
-        builder: (context, snap) {
-          if (snap.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snap.hasError) {
-            return const Center(child: Text('Failed to load feed'));
-          }
-
-          final posts = snap.data!;
-          if (posts.isEmpty) {
-            return const Center(child: Text('No posts yet'));
-          }
-
-          return ListView.builder(
-            itemCount: posts.length,
-            itemBuilder: (context, i) {
-              final p = posts[i];
-              return _post(
-                p['username'] ?? 'user',
-                p['caption'] ?? '',
-              );
-            },
-          );
-        },
-      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: fetchPosts,
+              child: ListView.builder(
+                itemCount: posts.length,
+                itemBuilder: (context, index) {
+                  final post = posts[index];
+                  return _PostCard(post: post);
+                },
+              ),
+            ),
     );
   }
+}
 
-  Widget _post(String user, String caption) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text(user),
-          trailing: const Icon(Icons.more_vert),
-        ),
-        Container(
-          height: 300,
-          color: Colors.white10,
-          child: const Center(
-            child: Icon(Icons.image, size: 80, color: Colors.white24),
+class _PostCard extends StatelessWidget {
+  final Map post;
+
+  const _PostCard({required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: const Color(0xFF11162A),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.15),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: const [
-              Icon(Icons.favorite_border),
-              SizedBox(width: 16),
-              Icon(Icons.chat_bubble_outline),
-              SizedBox(width: 16),
-              Icon(Icons.send),
-              Spacer(),
-              Icon(Icons.bookmark_border),
-            ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ===== HEADER =====
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                const CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.blueAccent,
+                  child: Icon(Icons.person, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    post['username'] ?? 'user',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.more_vert, color: Colors.white70),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            '$user $caption',
-            style: const TextStyle(fontSize: 13),
+
+          // ===== MEDIA =====
+          Container(
+            height: 260,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.zero,
+                bottom: Radius.zero,
+              ),
+              color: Colors.black,
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.image,
+                size: 80,
+                color: Colors.white24,
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-      ],
+
+          // ===== ACTIONS =====
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: const [
+                Icon(Icons.favorite_border, color: Colors.white),
+                SizedBox(width: 16),
+                Icon(Icons.chat_bubble_outline, color: Colors.white),
+                SizedBox(width: 16),
+                Icon(Icons.send, color: Colors.white),
+                Spacer(),
+                Icon(Icons.bookmark_border, color: Colors.white),
+              ],
+            ),
+          ),
+
+          // ===== CAPTION =====
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              post['caption'] ?? '',
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+        ],
+      ),
     );
   }
 }
