@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../services/auth_service.dart';
+import '../home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,107 +10,61 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
-
+  final _username = TextEditingController();
+  final _password = TextEditingController();
   bool loading = false;
-  String error = '';
-  String success = '';
+  String? error;
 
-  Future<void> register() async {
+  void register() async {
     setState(() {
       loading = true;
-      error = '';
-      success = '';
+      error = null;
     });
 
-    final response = await http.post(
-      Uri.parse('https://raonson-me.onrender.com/auth/register'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({
-        'username': _usernameController.text.trim(),
-        'password': _passwordController.text.trim(),
-      }),
+    final success = await AuthService.register(
+      _username.text,
+      _password.text,
     );
 
     setState(() => loading = false);
 
-    if (response.statusCode == 200) {
-      setState(() {
-        success = 'Registered successfully';
-      });
+    if (success) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(username: _username.text)),
+      );
     } else {
-      setState(() {
-        error = 'Registration failed';
-      });
+      setState(() => error = 'Register failed');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Register'),
-      ),
+      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text('Create Account',
+                style: TextStyle(fontSize: 28, color: Colors.white)),
             TextField(
-              controller: _usernameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                labelStyle: TextStyle(color: Colors.white70),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white30),
-                ),
-              ),
+              controller: _username,
+              decoration: const InputDecoration(labelText: 'Username'),
             ),
-
-            const SizedBox(height: 20),
-
             TextField(
-              controller: _passwordController,
+              controller: _password,
               obscureText: true,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Password',
-                labelStyle: TextStyle(color: Colors.white70),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white30),
-                ),
-              ),
+              decoration: const InputDecoration(labelText: 'Password'),
             ),
-
-            const SizedBox(height: 30),
-
-            if (error.isNotEmpty)
-              Text(error, style: const TextStyle(color: Colors.red)),
-
-            if (success.isNotEmpty)
-              Text(success, style: const TextStyle(color: Colors.green)),
-
-            const SizedBox(height: 10),
-
+            if (error != null)
+              Text(error!, style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: loading ? null : register,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
-                  vertical: 14,
-                ),
-              ),
               child: loading
-                  ? const CircularProgressIndicator(color: Colors.white)
+                  ? const CircularProgressIndicator()
                   : const Text('Register'),
             ),
           ],
