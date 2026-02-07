@@ -5,51 +5,63 @@ import '../core/session.dart';
 class AuthService {
   static const String baseUrl = 'https://raonson-me.onrender.com';
 
+  /// REGISTER
   static Future<bool> register(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
-    );
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/auth/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+        }),
+      );
 
-    print('REGISTER STATUS: ${res.statusCode}');
-    print('REGISTER BODY: ${res.body}');
+      print('REGISTER STATUS: ${res.statusCode}');
+      print('REGISTER BODY: ${res.body}');
 
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-
-      if (data['message'] != null) {
+      if (res.statusCode == 200 || res.statusCode == 201) {
         await Session.save(username);
         return true;
+      } else {
+        return false;
       }
+    } catch (e) {
+      print('REGISTER ERROR: $e');
+      return false;
     }
-    return false;
   }
 
+  /// LOGIN
   static Future<bool> login(String username, String password) async {
-    final res = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
-    );
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/auth/login'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+        }),
+      );
 
-    print('LOGIN STATUS: ${res.statusCode}');
-    print('LOGIN BODY: ${res.body}');
+      print('LOGIN STATUS: ${res.statusCode}');
+      print('LOGIN BODY: ${res.body}');
 
-    if (res.statusCode == 200) {
-      final data = jsonDecode(res.body);
-
-      if (data['message'] != null || data['token'] != null) {
+      if (res.statusCode == 200) {
         await Session.save(username);
         return true;
+      } else {
+        return false;
       }
+    } catch (e) {
+      print('LOGIN ERROR: $e');
+      return false;
     }
-    return false;
   }
 }
