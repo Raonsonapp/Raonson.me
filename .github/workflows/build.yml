@@ -1,38 +1,28 @@
 name: Build Raonson APK
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Create Flutter project
+      - name: Create project
         run: |
           flutter create raonson
           rm -rf raonson/lib
-          rm -rf raonson/assets || true
           cp -r lib raonson/lib
           cp pubspec.yaml raonson/pubspec.yaml
 
-      # 🔥 ИН ҶО МО ANDROID INTERNET PERMISSION МЕГУЗОРЕМ
-      - name: Add INTERNET permission
-        run: |
-          MANIFEST=raonson/android/app/src/main/AndroidManifest.xml
-          sed -i '/<manifest/a <uses-permission android:name="android.permission.INTERNET"/>' $MANIFEST
-
-      - name: Get dependencies
+      - name: Get deps
         run: |
           cd raonson
           flutter pub get
