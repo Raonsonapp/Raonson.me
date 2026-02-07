@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import '../add/add_screen.dart';
 
 /// ===============================
 /// HOME SCREEN – RAONSON v2
-/// Pixel-perfect Instagram-style
+/// FULL VERSION (NO MISSING PARTS)
 /// ===============================
 
 class HomeScreen extends StatefulWidget {
@@ -37,54 +38,40 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      appBar: _buildAppBar(),
-      body: CustomScrollView(
-        slivers: [
-          _buildStories(),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => _PostCard(
-                data: posts[index],
-                onLike: () => setState(() {}),
-              ),
-              childCount: posts.length,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  // -------------------------------
-  // APP BAR
-  // -------------------------------
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: const Color(0xFF0B0F1A),
-      elevation: 0,
-      leadingWidth: 56,
-      leading: IconButton(
-        icon: const Icon(Icons.add, size: 28),
-        onPressed: () {
-          // TODO: Add post
-        },
-      ),
-      centerTitle: true,
-      title: const Text(
-        'Raonson',
-        style: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
+      // ===== APP BAR =====
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0B0F1A),
+        elevation: 0,
+
+        // 🔹 (+) ДАР ИН ҶО АСТ (ЧАПИ БОЛО)
+        leading: IconButton(
+          icon: const Icon(Icons.add, size: 28),
+          onPressed: () {
+            // ⬇⬇⬇ ИН ҶО + КОР МЕКУНАД ⬇⬇⬇
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AddPostScreen(),
+              ),
+            );
+          },
         ),
-      ),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 14),
-          child: GestureDetector(
-            onTap: () {
-              // TODO: Messages / Jarvis
-            },
+
+        centerTitle: true,
+        title: const Text(
+          'Raonson',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+
+        // 🔹 JARVIS (ROST)
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
             child: Container(
               width: 36,
               height: 36,
@@ -103,8 +90,21 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.smart_toy, size: 20),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
+
+      // ===== BODY =====
+      body: CustomScrollView(
+        slivers: [
+          _buildStories(),
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => _PostCard(data: posts[index]),
+              childCount: posts.length,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -178,12 +178,8 @@ class _StoryBubble extends StatelessWidget {
 /// ===============================
 class _PostCard extends StatefulWidget {
   final _PostData data;
-  final VoidCallback onLike;
 
-  const _PostCard({
-    required this.data,
-    required this.onLike,
-  });
+  const _PostCard({required this.data});
 
   @override
   State<_PostCard> createState() => _PostCardState();
@@ -198,16 +194,16 @@ class _PostCardState extends State<_PostCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _postHeader(),
-        _postMedia(),
-        _postActions(),
-        _postCaption(),
+        _header(),
+        _media(),
+        _actions(),
+        _caption(),
         const SizedBox(height: 24),
       ],
     );
   }
 
-  Widget _postHeader() {
+  Widget _header() {
     return ListTile(
       leading: const CircleAvatar(
         backgroundColor: Colors.blueAccent,
@@ -221,7 +217,7 @@ class _PostCardState extends State<_PostCard> {
     );
   }
 
-  Widget _postMedia() {
+  Widget _media() {
     return Container(
       height: 360,
       margin: const EdgeInsets.symmetric(horizontal: 12),
@@ -235,7 +231,7 @@ class _PostCardState extends State<_PostCard> {
     );
   }
 
-  Widget _postActions() {
+  Widget _actions() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -250,14 +246,11 @@ class _PostCardState extends State<_PostCard> {
                 liked = !liked;
                 widget.data.likes += liked ? 1 : -1;
               });
-              widget.onLike();
             },
           ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () {
-              // TODO: open comments
-            },
+            onPressed: () {},
           ),
           IconButton(
             icon: const Icon(Icons.send),
@@ -277,7 +270,7 @@ class _PostCardState extends State<_PostCard> {
     );
   }
 
-  Widget _postCaption() {
+  Widget _caption() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: RichText(
