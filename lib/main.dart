@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/auth/login_screen.dart';
+import 'navigation/bottom_nav.dart';
 
 void main() {
   runApp(const RaonsonApp());
@@ -10,9 +11,15 @@ class RaonsonApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      title: 'Raonson',
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0B0F1A),
+        useMaterial3: true,
+      ),
+      home: const LoginScreen(),
     );
   }
 }
