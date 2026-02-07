@@ -1,20 +1,22 @@
-class Post {
-  int likes;
-  bool liked;
-  bool saved;
+class PostModel {
+  final int id;
+  final String username;
+  final String caption;
+  final int likes;
 
-  Post({
-    this.likes = 0,
-    this.liked = false,
-    this.saved = false,
+  PostModel({
+    required this.id,
+    required this.username,
+    required this.caption,
+    required this.likes,
   });
 
-  void toggleLike() {
-    liked = !liked;
-    likes += liked ? 1 : -1;
-  }
-
-  void toggleSave() {
-    saved = !saved;
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    return PostModel(
+      id: json['id'],
+      username: json['username'],
+      caption: json['caption'],
+      likes: json['likes'],
+    );
   }
 }
