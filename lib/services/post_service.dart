@@ -1,27 +1,15 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../core/config.dart';
-import 'auth_service.dart';
+import '../core/api.dart';
+import '../core/http_service.dart';
+import '../models/post_model.dart';
 
 class PostService {
-  static Map<String, String> _headers() => {
-        'Content-Type': 'application/json',
-        if (AuthService.token != null)
-          'Authorization': 'Bearer ${AuthService.token}',
-      };
-
-  static Future<List<dynamic>> getFeed() async {
-    final res = await http
-        .get(
-          Uri.parse('${AppConfig.baseUrl}/posts'),
-          headers: _headers(),
-        )
-        .timeout(const Duration(seconds: 10));
-
+  static Future<List<PostModel>> fetchPosts() async {
+    final res = await HttpService.get('${Api.baseUrl}/posts');
     if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    } else {
-      throw Exception('Failed to load feed');
+      final data = jsonDecode(res.body) as List;
+      return data.map((e) => PostModel.fromJson(e)).toList();
     }
+    return [];
   }
 }
