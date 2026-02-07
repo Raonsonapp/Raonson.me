@@ -14,9 +14,9 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int _index = 0;
+  int index = 0;
 
-  final List<Widget> _screens = const [
+  final List<Widget> screens = const [
     HomeScreen(),
     ReelsScreen(),
     SearchScreen(),
@@ -28,14 +28,10 @@ class _BottomNavState extends State<BottomNav> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
-      body: _screens[_index],
+      body: screens[index],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index,
-        onTap: (i) {
-          setState(() {
-            _index = i;
-          });
-        },
+        currentIndex: index,
+        onTap: (i) => setState(() => index = i),
         type: BottomNavigationBarType.fixed,
         backgroundColor: const Color(0xFF0B0F1A),
         selectedItemColor: Colors.blueAccent,
