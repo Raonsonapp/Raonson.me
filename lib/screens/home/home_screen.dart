@@ -1,43 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../models/post.dart';
-import '../../core/api.dart';
-import '../../core/http_client.dart';
-import '../../models/post.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  List<Post> posts = [];
-  bool loading = true;
-  String? error;
-
-  @override
-  void initState() {
-    super.initState();
-    loadPosts();
-  }
-
-  Future<void> loadPosts() async {
-    try {
-      final data = await HttpClient.get(
-        '${ApiConfig.baseUrl}/posts',
-      );
-      setState(() {
-        posts = data.map<Post>((e) => Post.fromJson(e)).toList();
-        loading = false;
-      });
-    } catch (e) {
-      setState(() {
-        error = 'Failed to load feed';
-        loading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,41 +12,79 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         title: const Text(
           'Raonson',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueAccent,
+          ),
         ),
+        actions: const [
+          Icon(Icons.notifications_none, color: Colors.white),
+          SizedBox(width: 12),
+        ],
       ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : error != null
-              ? Center(
-                  child: Text(error!, style: const TextStyle(color: Colors.red)),
-                )
-              : RefreshIndicator(
-                  onRefresh: loadPosts,
-                  child: ListView.builder(
-                    itemCount: posts.length,
-                    itemBuilder: (c, i) => _PostCard(post: posts[i]),
-                  ),
-                ),
+      body: ListView(
+        children: [
+          _stories(),
+          const SizedBox(height: 12),
+          _postCard(),
+          _postCard(),
+        ],
+      ),
     );
   }
-}
 
-class _PostCard extends StatelessWidget {
-  final Post post;
-  const _PostCard({required this.post});
+  // ================= STORIES =================
+  Widget _stories() {
+    return SizedBox(
+      height: 96,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        itemCount: 8,
+        itemBuilder: (c, i) {
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Colors.blueAccent, Colors.lightBlue],
+                    ),
+                  ),
+                  child: const CircleAvatar(
+                    radius: 28,
+                    backgroundColor: Color(0xFF0B0F1A),
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'user',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  // ================= POST CARD =================
+  Widget _postCard() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+      margin: const EdgeInsets.fromLTRB(12, 8, 12, 16),
       decoration: BoxDecoration(
         color: const Color(0xFF11162A),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             color: Colors.blueAccent.withOpacity(0.18),
-            blurRadius: 20,
+            blurRadius: 22,
             offset: const Offset(0, 6),
           ),
         ],
@@ -94,38 +96,38 @@ class _PostCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
-              children: [
-                const CircleAvatar(
+              children: const [
+                CircleAvatar(
                   radius: 18,
                   backgroundColor: Colors.blueAccent,
                   child: Icon(Icons.person, color: Colors.white, size: 18),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Text(
-                  post.username,
-                  style: const TextStyle(
+                  'username',
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Spacer(),
-                const Icon(Icons.more_vert, color: Colors.white54),
+                Spacer(),
+                Icon(Icons.more_vert, color: Colors.white54),
               ],
             ),
           ),
 
-          // MEDIA (placeholder, server-ready)
+          // IMAGE
           Container(
             height: 240,
             color: Colors.black,
             child: const Center(
-              child: Icon(Icons.image, color: Colors.white24, size: 80),
+              child: Icon(Icons.image, size: 80, color: Colors.white24),
             ),
           ),
 
           // ACTIONS
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
             child: Row(
               children: const [
                 Icon(Icons.favorite_border, color: Colors.white),
@@ -140,11 +142,11 @@ class _PostCard extends StatelessWidget {
           ),
 
           // CAPTION
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
             child: Text(
-              post.caption,
-              style: const TextStyle(color: Colors.white70),
+              'This is a caption example for Raonson post.',
+              style: TextStyle(color: Colors.white70),
             ),
           ),
         ],
