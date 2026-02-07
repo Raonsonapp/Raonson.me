@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/chat_service.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatelessWidget {
@@ -10,22 +11,42 @@ class ChatListScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
-        elevation: 0,
         title: const Text('Chats'),
       ),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, i) {
-          return ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text('user$i'),
-            subtitle: const Text('Last message...'),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatScreen(username: 'user$i'),
-                ),
+      body: FutureBuilder<List>(
+        future: ChatService.getChats(),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return const Center(child: Text('Failed to load chats'));
+          }
+
+          final chats = snap.data!;
+          if (chats.isEmpty) {
+            return const Center(child: Text('No chats'));
+          }
+
+          return ListView.builder(
+            itemCount: chats.length,
+            itemBuilder: (context, i) {
+              final c = chats[i];
+              return ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.person)),
+                title: Text(c['username'] ?? 'user'),
+                subtitle: const Text('Tap to open'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        chatId: c['id'].toString(),
+                        username: c['username'] ?? 'user',
+                      ),
+                    ),
+                  );
+                },
               );
             },
           );
