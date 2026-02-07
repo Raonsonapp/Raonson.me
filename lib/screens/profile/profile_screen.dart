@@ -1,6 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../core/api.dart';
+import '../../core/http_client.dart';
+import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -10,118 +11,141 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  Map profile = {};
+  Map<String, dynamic>? profile;
   List posts = [];
   bool loading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchProfile();
+    loadProfile();
   }
 
-  Future<void> fetchProfile() async {
-    try {
-      // барои v2 оддӣ: сервер профили user-и ҷориро бармегардонад
-      final resProfile = await http.get(
-        Uri.parse('https://raonson-me.onrender.com/profile'),
-      );
+  Future<void> loadProfile() async {
+    final data = await HttpClient.get(
+      '${ApiConfig.baseUrl}/profile',
+    );
 
-      final resPosts = await http.get(
-        Uri.parse('https://raonson-me.onrender.com/posts'),
-      );
+    setState(() {
+      profile = data['user'];
+      posts = data['posts'] ?? [];
+      loading = false;
+    });
+  }
 
-      if (resProfile.statusCode == 200 &&
-          resPosts.statusCode == 200) {
-        setState(() {
-          profile = jsonDecode(resProfile.body);
-          posts = jsonDecode(resPosts.body);
-          loading = false;
-        });
-      } else {
-        setState(() => loading = false);
-      }
-    } catch (_) {
-      setState(() => loading = false);
-    }
+  void logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0B0F1A),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: fetchProfile,
-              child: ListView(
-                children: [
-                  _header(),
-                  const SizedBox(height: 12),
-                  _stats(),
-                  const SizedBox(height: 16),
-                  _bio(),
-                  const SizedBox(height: 16),
-                  const Divider(color: Colors.white12),
-                  _postGrid(),
-                ],
-              ),
-            ),
-    );
-  }
-
-  Widget _header() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.35),
-                  blurRadius: 14,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.blueAccent,
-              child: Icon(Icons.person, size: 40, color: Colors.white),
-            ),
+        title: Text(profile?['username'] ?? 'Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: logout,
           ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      body: ListView(
+        children: [
+          // HEADER
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  profile['username'] ?? 'user',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blueAccent.withOpacity(0.4),
+                        blurRadius: 18,
+                        spreadRadius: 3,
+                      ),
+                    ],
+                  ),
+                  child: const CircleAvatar(
+                    radius: 36,
+                    backgroundColor: Colors.blueAccent,
+                    child: Icon(Icons.person, size: 36, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 6),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF11162A),
-                  ),
-                  child: const Text('Edit profile'),
+                const SizedBox(width: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      profile?['username'] ?? '',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      profile?['bio'] ?? 'No bio',
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                  ],
                 ),
               ],
+            ),
+          ),
+
+          // STATS
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _stat('Posts', posts.length),
+                _stat('Followers', profile?['followers'] ?? 0),
+                _stat('Following', profile?['following'] ?? 0),
+              ],
+            ),
+          ),
+
+          const Divider(color: Colors.white12),
+
+          // POSTS GRID
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: posts.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 6,
+                mainAxisSpacing: 6,
+              ),
+              itemBuilder: (c, i) {
+                return Container(
+                  color: const Color(0xFF11162A),
+                  child: const Icon(
+                    Icons.image,
+                    color: Colors.white24,
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -129,35 +153,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _stats() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _statItem(posts.length.toString(), 'Posts'),
-          _statItem(
-            (profile['followers'] ?? 0).toString(),
-            'Followers',
-          ),
-          _statItem(
-            (profile['following'] ?? 0).toString(),
-            'Following',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _statItem(String value, String label) {
+  Widget _stat(String label, int value) {
     return Column(
       children: [
         Text(
-          value,
+          value.toString(),
           style: const TextStyle(
-            fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontSize: 16,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
@@ -166,52 +170,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: const TextStyle(color: Colors.white54),
         ),
       ],
-    );
-  }
-
-  Widget _bio() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Text(
-        profile['bio'] ?? 'No bio yet',
-        style: const TextStyle(color: Colors.white70),
-      ),
-    );
-  }
-
-  Widget _postGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(4),
-      itemCount: posts.length,
-      gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-      ),
-      itemBuilder: (context, index) {
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF11162A),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.withOpacity(0.12),
-                blurRadius: 6,
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(
-              Icons.image,
-              color: Colors.white24,
-              size: 40,
-            ),
-          ),
-        );
-      },
     );
   }
 }
