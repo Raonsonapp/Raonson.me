@@ -1,53 +1,48 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../config/api.dart';
+import '../core/config.dart';
 import 'auth_service.dart';
 
 class ChatService {
   static Map<String, String> _headers() => {
-        "Content-Type": "application/json",
-        "Authorization": AuthService.token ?? "",
+        'Content-Type': 'application/json',
+        if (AuthService.token != null)
+          'Authorization': 'Bearer ${AuthService.token}',
       };
 
-  // GET conversations
-  static Future<List> getConversations() async {
-    final res = await http.get(
-      Uri.parse("$baseUrl/chat/conversations"),
-      headers: _headers(),
-    );
+  static Future<List> getChats() async {
+    final res = await http
+        .get(
+          Uri.parse('${AppConfig.baseUrl}/chat'),
+          headers: _headers(),
+        )
+        .timeout(const Duration(seconds: 10));
 
-    if (res.statusCode != 200) {
-      throw Exception("Failed to load conversations");
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
     }
-    return jsonDecode(res.body);
+    throw Exception('Chat load error');
   }
 
-  // GET messages
-  static Future<List> getMessages(String conversationId) async {
-    final res = await http.get(
-      Uri.parse("$baseUrl/chat/$conversationId/messages"),
-      headers: _headers(),
-    );
+  static Future<List> getMessages(String chatId) async {
+    final res = await http
+        .get(
+          Uri.parse('${AppConfig.baseUrl}/chat/$chatId'),
+          headers: _headers(),
+        )
+        .timeout(const Duration(seconds: 10));
 
-    if (res.statusCode != 200) {
-      throw Exception("Failed to load messages");
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
     }
-    return jsonDecode(res.body);
+    throw Exception('Messages error');
   }
 
-  // SEND message
-  static Future<void> sendMessage(String toUserId, String text) async {
-    final res = await http.post(
-      Uri.parse("$baseUrl/chat/send"),
+  static Future<void> sendMessage(String chatId, String text) async {
+    await http.post(
+      Uri.parse('${AppConfig.baseUrl}/chat/$chatId/send'),
       headers: _headers(),
-      body: jsonEncode({
-        "to_user_id": toUserId,
-        "text": text,
-      }),
+      body: jsonEncode({'text': text}),
     );
-
-    if (res.statusCode != 200) {
-      throw Exception("Failed to send message");
-    }
   }
 }
