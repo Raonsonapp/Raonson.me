@@ -1,175 +1,177 @@
 import 'package:flutter/material.dart';
-import '../../core/api.dart';
-import '../../core/http_client.dart';
-import '../auth/login_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  Map<String, dynamic>? profile;
-  List posts = [];
-  bool loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    loadProfile();
-  }
-
-  Future<void> loadProfile() async {
-    final data = await HttpClient.get(
-      '${ApiConfig.baseUrl}/profile',
-    );
-
-    setState(() {
-      profile = data['user'];
-      posts = data['posts'] ?? [];
-      loading = false;
-    });
-  }
-
-  void logout() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (_) => false,
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (loading) {
-      return const Scaffold(
-        backgroundColor: Color(0xFF0B0F1A),
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: Text(profile?['username'] ?? 'Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: logout,
-          ),
+        title: const Text('username'),
+        actions: const [
+          Icon(Icons.menu, color: Colors.white),
+          SizedBox(width: 12),
         ],
       ),
       body: ListView(
         children: [
-          // HEADER
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blueAccent.withOpacity(0.4),
-                        blurRadius: 18,
-                        spreadRadius: 3,
-                      ),
-                    ],
-                  ),
-                  child: const CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.blueAccent,
-                    child: Icon(Icons.person, size: 36, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      profile?['username'] ?? '',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      profile?['bio'] ?? 'No bio',
-                      style: const TextStyle(color: Colors.white54),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _header(),
+          const SizedBox(height: 14),
+          _bio(),
+          const SizedBox(height: 16),
+          _actions(),
+          const SizedBox(height: 16),
+          _grid(),
+        ],
+      ),
+    );
+  }
 
-          // STATS
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _stat('Posts', posts.length),
-                _stat('Followers', profile?['followers'] ?? 0),
-                _stat('Following', profile?['following'] ?? 0),
-              ],
-            ),
-          ),
-
-          const Divider(color: Colors.white12),
-
-          // POSTS GRID
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: posts.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
+  // ================= HEADER =================
+  Widget _header() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent, Colors.lightBlue],
               ),
-              itemBuilder: (c, i) {
-                return Container(
-                  color: const Color(0xFF11162A),
-                  child: const Icon(
-                    Icons.image,
-                    color: Colors.white24,
-                  ),
-                );
-              },
             ),
+            child: const CircleAvatar(
+              radius: 36,
+              backgroundColor: Color(0xFF0B0F1A),
+              child: Icon(Icons.person, size: 36, color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 20),
+          _stat('12', 'Posts'),
+          _stat('1.2k', 'Followers'),
+          _stat('180', 'Following'),
+        ],
+      ),
+    );
+  }
+
+  Widget _stat(String count, String label) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
           ),
         ],
       ),
     );
   }
 
-  Widget _stat(String label, int value) {
-    return Column(
-      children: [
-        Text(
-          value.toString(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+  // ================= BIO =================
+  Widget _bio() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Username',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          SizedBox(height: 4),
+          Text(
+            'This is a bio example for Raonson profile.\n#raonson #social',
+            style: TextStyle(color: Colors.white70),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ================= ACTIONS =================
+  Widget _actions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          _btn('Edit profile'),
+          const SizedBox(width: 10),
+          _btn('Share profile'),
+        ],
+      ),
+    );
+  }
+
+  Widget _btn(String text) {
+    return Expanded(
+      child: Container(
+        height: 36,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0xFF11162A),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blueAccent.withOpacity(0.25),
+              blurRadius: 14,
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white54),
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.white),
         ),
-      ],
+      ),
+    );
+  }
+
+  // ================= GRID =================
+  Widget _grid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+      ),
+      itemCount: 12,
+      itemBuilder: (c, i) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueAccent.withOpacity(0.18),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(Icons.image, color: Colors.white24),
+          ),
+        );
+      },
     );
   }
 }
