@@ -1,16 +1,30 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../core/config.dart';
+import '../core/api.dart';
+import '../core/http_service.dart';
 
 class SearchService {
-  static Future<List> searchPosts() async {
-    final res = await http
-        .get(Uri.parse('${AppConfig.baseUrl}/search'))
-        .timeout(const Duration(seconds: 10));
+  // ===== SEARCH USERS =====
+  static Future<List<dynamic>> searchUsers(String query) async {
+    if (query.isEmpty) return [];
+    final res = await HttpService.get(
+      '${Api.baseUrl}/search/users?q=$query',
+    );
+    return (res as List?) ?? [];
+  }
 
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    throw Exception('Search failed');
+  // ===== SEARCH POSTS =====
+  static Future<List<dynamic>> searchPosts(String query) async {
+    if (query.isEmpty) return [];
+    final res = await HttpService.get(
+      '${Api.baseUrl}/search/posts?q=$query',
+    );
+    return (res as List?) ?? [];
+  }
+
+  // ===== EXPLORE =====
+  static Future<List<dynamic>> explore() async {
+    final res = await HttpService.get(
+      '${Api.baseUrl}/explore',
+    );
+    return (res as List?) ?? [];
   }
 }
