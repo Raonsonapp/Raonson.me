@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../core/http_service.dart';
-import '../../core/session.dart';
+import 'package:video_player/video_player.dart';
+import '../../models/reel.dart';
+import '../../services/reels_service.dart';
 
 class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
@@ -11,202 +11,106 @@ class ReelsScreen extends StatefulWidget {
 }
 
 class _ReelsScreenState extends State<ReelsScreen> {
-  List reels = [];
+  final PageController _page = PageController();
+  List<Reel> reels = [];
   bool loading = true;
-  String me = '';
+  VideoPlayerController? _vc;
 
   @override
   void initState() {
     super.initState();
-    _init();
+    load();
   }
 
-  Future<void> _init() async {
-    me = await Session.username() ?? '';
-    await _loadReels();
-  }
-
-  Future<void> _loadReels() async {
-    final res = await HttpService.get('/posts');
-    reels = jsonDecode(res.body);
+  Future<void> load() async {
+    reels = await ReelsService.fetchReels();
     setState(() => loading = false);
+    if (reels.isNotEmpty) _initVideo(0);
+  }
+
+  Future<void> _initVideo(int i) async {
+    await _vc?.dispose();
+    _vc = VideoPlayerController.networkUrl(Uri.parse(reels[i].videoUrl));
+    await _vc!.initialize();
+    _vc!.setLooping(true);
+    _vc!.play();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _vc?.dispose();
+    _page.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : PageView.builder(
-              scrollDirection: Axis.vertical,
-              itemCount: reels.length,
-              itemBuilder: (_, i) => _reelItem(reels[i]),
+      body: PageView.builder(
+        controller: _page,
+        scrollDirection: Axis.vertical,
+        itemCount: reels.length,
+        onPageChanged: _initVideo,
+        itemBuilder: (_, i) => Stack(
+          children: [
+            if (_vc != null && _vc!.value.isInitialized)
+              Center(
+                child: AspectRatio(
+                  aspectRatio: _vc!.value.aspectRatio,
+                  child: VideoPlayer(_vc!),
+                ),
+              ),
+
+            // RIGHT ACTIONS
+            Positioned(
+              right: 12,
+              bottom: 120,
+              child: Column(
+                children: const [
+                  Icon(Icons.favorite_border, color: Colors.white, size: 30),
+                  SizedBox(height: 18),
+                  Icon(Icons.chat_bubble_outline,
+                      color: Colors.white, size: 28),
+                  SizedBox(height: 18),
+                  Icon(Icons.send_outlined, color: Colors.white, size: 28),
+                  SizedBox(height: 18),
+                  Icon(Icons.bookmark_border, color: Colors.white, size: 28),
+                ],
+              ),
             ),
-    );
-  }
 
-  // ================= REEL ITEM =================
-  Widget _reelItem(dynamic reel) {
-    return Stack(
-      children: [
-        _videoPlaceholder(),
-        _rightActions(reel),
-        _bottomInfo(reel),
-      ],
-    );
-  }
-
-  // ================= VIDEO =================
-  Widget _videoPlaceholder() {
-    return Container(
-      color: Colors.black,
-      child: const Center(
-        child: Icon(
-          Icons.play_arrow,
-          size: 100,
-          color: Colors.white24,
-        ),
-      ),
-    );
-  }
-
-  // ================= RIGHT ACTIONS =================
-  Widget _rightActions(dynamic reel) {
-    return Positioned(
-      right: 12,
-      bottom: 120,
-      child: Column(
-        children: [
-          _actionButton(
-            icon: Icons.favorite_border,
-            label: 'Like',
-            onTap: () async {
-              await HttpService.post('/posts/${reel['id']}/like', {});
-            },
-          ),
-          const SizedBox(height: 18),
-          _actionButton(
-            icon: Icons.comment,
-            label: 'Comment',
-            onTap: () {},
-          ),
-          const SizedBox(height: 18),
-          _actionButton(
-            icon: Icons.send,
-            label: 'Share',
-            onTap: () {},
-          ),
-          const SizedBox(height: 18),
-          _actionButton(
-            icon: Icons.bookmark_border,
-            label: 'Save',
-            onTap: () {},
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Icon(icon, size: 30, color: Colors.white),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
+            // BOTTOM INFO
+            Positioned(
+              left: 12,
+              bottom: 24,
+              right: 80,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '@${reels[i].username}',
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    reels[i].caption,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ================= BOTTOM INFO =================
-  Widget _bottomInfo(dynamic reel) {
-    return Positioned(
-      left: 12,
-      bottom: 24,
-      right: 80,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _userRow(reel),
-          const SizedBox(height: 8),
-          Text(
-            reel['caption'],
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          _musicRow(),
-        ],
-      ),
-    );
-  }
-
-  Widget _userRow(dynamic reel) {
-    return Row(
-      children: [
-        const CircleAvatar(
-          radius: 16,
-          backgroundColor: Colors.blueAccent,
-          child: Icon(Icons.person, size: 18),
+          ],
         ),
-        const SizedBox(width: 8),
-        Text(
-          reel['username'],
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(width: 12),
-        _followBtn(reel['username']),
-      ],
-    );
-  }
-
-  Widget _followBtn(String user) {
-    if (user == me) {
-      return const SizedBox();
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.white),
       ),
-      child: const Text(
-        'Follow',
-        style: TextStyle(color: Colors.white, fontSize: 12),
-      ),
-    );
-  }
-
-  Widget _musicRow() {
-    return Row(
-      children: const [
-        Icon(Icons.music_note, size: 16, color: Colors.white),
-        SizedBox(width: 6),
-        Text(
-          'Original sound • Raonson',
-          style: TextStyle(color: Colors.white70, fontSize: 12),
-        ),
-      ],
     );
   }
 }
