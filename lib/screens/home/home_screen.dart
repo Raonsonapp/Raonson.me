@@ -2,6 +2,20 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+class HomeScreen extends StatelessWidget {
+  final String username;
+  const HomeScreen({super.key, required this.username});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Welcome $username')),
+      body: const Center(
+        child: Text('Raonson is LIVE 🔥'),
+      ),
+    );
+  }
+}
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
