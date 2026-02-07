@@ -1,50 +1,134 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
-class ReelsScreen extends StatelessWidget {
+class ReelsScreen extends StatefulWidget {
   const ReelsScreen({super.key});
+
+  @override
+  State<ReelsScreen> createState() => _ReelsScreenState();
+}
+
+class _ReelsScreenState extends State<ReelsScreen> {
+  List reels = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchReels();
+  }
+
+  Future<void> fetchReels() async {
+    try {
+      final res = await http.get(
+        Uri.parse('https://raonson-me.onrender.com/posts'),
+      );
+
+      if (res.statusCode == 200) {
+        setState(() {
+          reels = jsonDecode(res.body);
+          loading = false;
+        });
+      } else {
+        setState(() => loading = false);
+      }
+    } catch (_) {
+      setState(() => loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: PageView.builder(
-        scrollDirection: Axis.vertical,
-        itemCount: 5,
-        itemBuilder: (context, i) => _reel(),
-      ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : PageView.builder(
+              scrollDirection: Axis.vertical,
+              itemCount: reels.length,
+              itemBuilder: (context, index) {
+                final reel = reels[index];
+                return _ReelItem(reel: reel);
+              },
+            ),
     );
   }
+}
 
-  Widget _reel() {
+class _ReelItem extends StatelessWidget {
+  final Map reel;
+
+  const _ReelItem({required this.reel});
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
-        const Center(
-          child: Icon(Icons.play_arrow, size: 100, color: Colors.white24),
+        // ===== VIDEO PLACEHOLDER =====
+        Container(
+          color: Colors.black,
+          child: const Center(
+            child: Icon(
+              Icons.play_circle_outline,
+              size: 90,
+              color: Colors.white24,
+            ),
+          ),
         ),
+
+        // ===== RIGHT ACTIONS =====
         Positioned(
           right: 12,
-          bottom: 100,
+          bottom: 120,
           child: Column(
             children: const [
-              _Action(Icons.favorite_border, '12k'),
-              SizedBox(height: 22),
-              _Action(Icons.chat_bubble_outline, '320'),
-              SizedBox(height: 22),
-              _Action(Icons.send, ''),
-              SizedBox(height: 22),
-              _Action(Icons.bookmark_border, ''),
+              _ReelIcon(icon: Icons.favorite_border, label: '1.2K'),
+              SizedBox(height: 20),
+              _ReelIcon(icon: Icons.chat_bubble_outline, label: '340'),
+              SizedBox(height: 20),
+              _ReelIcon(icon: Icons.send, label: 'Share'),
+              SizedBox(height: 20),
+              _ReelIcon(icon: Icons.bookmark_border, label: 'Save'),
             ],
           ),
         ),
+
+        // ===== USER INFO =====
         Positioned(
           left: 12,
-          bottom: 24,
+          bottom: 30,
+          right: 90,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('username', style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 6),
-              Text('Reels caption ✨', maxLines: 2),
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.blueAccent,
+                    child: Icon(Icons.person, color: Colors.white, size: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    reel['username'] ?? 'user',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                reel['caption'] ?? '',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
+              ),
             ],
           ),
         ),
@@ -53,18 +137,34 @@ class ReelsScreen extends StatelessWidget {
   }
 }
 
-class _Action extends StatelessWidget {
+class _ReelIcon extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _Action(this.icon, this.label);
+
+  const _ReelIcon({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 32),
-        if (label.isNotEmpty)
-          Text(label, style: const TextStyle(fontSize: 12)),
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.25),
+                blurRadius: 12,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Icon(icon, color: Colors.white, size: 30),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 12),
+        ),
       ],
     );
   }
