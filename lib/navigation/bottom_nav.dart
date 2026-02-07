@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../screens/home/home_screen.dart';
-import '../screens/search/search_screen.dart';
 import '../screens/reels/reels_screen.dart';
-import '../screens/chat/chat_screen.dart';
+import '../screens/search/search_screen.dart';
+import '../screens/chat/chat_list_screen.dart';
 import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -14,33 +14,34 @@ class BottomNav extends StatefulWidget {
 }
 
 class _BottomNavState extends State<BottomNav> {
-  int index = 0;
+  int _index = 0;
 
-  final List<Widget> screens = const [
+  final List<Widget> _screens = const [
     HomeScreen(),
     ReelsScreen(),
     SearchScreen(),
-    ChatScreen(),
+    ChatListScreen(),
     ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: screens[index],
+      backgroundColor: const Color(0xFF0B0F1A),
+      body: _screens[_index],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
+        currentIndex: _index,
         onTap: (i) {
           setState(() {
-            index = i;
+            _index = i;
           });
         },
         type: BottomNavigationBarType.fixed,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
+        backgroundColor: const Color(0xFF0B0F1A),
         selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.white38,
-        backgroundColor: const Color(0xFF0B0F1A),
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
