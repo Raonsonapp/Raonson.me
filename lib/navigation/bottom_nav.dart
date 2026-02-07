@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../screens/home/home_screen.dart';
-import '../screens/reels/reels_screen.dart';
 import '../screens/search/search_screen.dart';
-import '../screens/chat/chat_list_screen.dart';
+import '../screens/reels/reels_screen.dart';
+import '../screens/chat/chat_screen.dart';
 import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
@@ -16,18 +16,18 @@ class BottomNav extends StatefulWidget {
 class _BottomNavState extends State<BottomNav> {
   int index = 0;
 
-  final List<Widget> pages = const [
+  final List<Widget> screens = const [
     HomeScreen(),
     ReelsScreen(),
     SearchScreen(),
-    ChatListScreen(),
+    ChatScreen(),
     ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[index],
+      body: screens[index],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
         onTap: (i) {
@@ -38,7 +38,7 @@ class _BottomNavState extends State<BottomNav> {
         type: BottomNavigationBarType.fixed,
         showSelectedLabels: false,
         showUnselectedLabels: false,
-        selectedItemColor: const Color(0xFF4DA3FF),
+        selectedItemColor: Colors.blueAccent,
         unselectedItemColor: Colors.white38,
         backgroundColor: const Color(0xFF0B0F1A),
         items: const [
