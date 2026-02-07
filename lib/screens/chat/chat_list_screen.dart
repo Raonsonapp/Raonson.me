@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'chat_screen.dart';
+import '../../core/api.dart';
+import '../../core/http_client.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -17,27 +16,18 @@ class _ChatListScreenState extends State<ChatListScreen> {
   @override
   void initState() {
     super.initState();
-    fetchChats();
+    loadChats();
   }
 
-  Future<void> fetchChats() async {
-    try {
-      // барои v2 оддӣ: сервер чатҳоро бармегардонад
-      final res = await http.get(
-        Uri.parse('https://raonson-me.onrender.com/chat'),
-      );
+  Future<void> loadChats() async {
+    final data = await HttpClient.get(
+      '${ApiConfig.baseUrl}/chat',
+    );
 
-      if (res.statusCode == 200) {
-        setState(() {
-          chats = jsonDecode(res.body);
-          loading = false;
-        });
-      } else {
-        setState(() => loading = false);
-      }
-    } catch (_) {
-      setState(() => loading = false);
-    }
+    setState(() {
+      chats = data;
+      loading = false;
+    });
   }
 
   @override
@@ -47,56 +37,40 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0B0F1A),
         elevation: 0,
-        title: const Text(
-          'Chats',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Chats'),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                return _ChatTile(chat: chat);
+              itemBuilder: (c, i) {
+                final chat = chats[i];
+                return ListTile(
+                  leading: const CircleAvatar(
+                    backgroundColor: Colors.blueAccent,
+                    child: Icon(Icons.person, color: Colors.white),
+                  ),
+                  title: Text(
+                    chat['username'],
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  subtitle: Text(
+                    chat['last_message'] ?? '',
+                    style: const TextStyle(color: Colors.white54),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ChatScreen(
+                          username: chat['username'],
+                        ),
+                      ),
+                    );
+                  },
+                );
               },
             ),
-    );
-  }
-}
-
-class _ChatTile extends StatelessWidget {
-  final Map chat;
-
-  const _ChatTile({required this.chat});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: const CircleAvatar(
-        backgroundColor: Colors.blueAccent,
-        child: Icon(Icons.person, color: Colors.white),
-      ),
-      title: Text(
-        chat['username'] ?? 'user',
-        style: const TextStyle(color: Colors.white),
-      ),
-      subtitle: Text(
-        chat['last_message'] ?? '',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: Colors.white54),
-      ),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(
-              username: chat['username'] ?? 'user',
-            ),
-          ),
-        );
-      },
     );
   }
 }
