@@ -7,14 +7,11 @@ import '../screens/profile/profile_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
-
-  @override
-  State<BottomNav> createState() => _BottomNavState();
+  @override State<BottomNav> createState() => _BottomNavState();
 }
 
 class _BottomNavState extends State<BottomNav> {
   int i = 0;
-
   final screens = const [
     HomeScreen(),
     ChatListScreen(),
@@ -31,6 +28,8 @@ class _BottomNavState extends State<BottomNav> {
         currentIndex: i,
         onTap: (v) => setState(() => i = v),
         type: BottomNavigationBarType.fixed,
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.send), label: ''),
