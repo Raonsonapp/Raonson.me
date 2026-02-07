@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../../navigation/bottom_nav.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,89 +9,81 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final username = TextEditingController();
-  final password = TextEditingController();
+  final _user = TextEditingController();
+  final _pass = TextEditingController();
   bool loading = false;
   String? error;
 
-  Future<void> doRegister() async {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0F1A),
+      appBar: AppBar(backgroundColor: const Color(0xFF0B0F1A)),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            _input(_user, 'Username'),
+            const SizedBox(height: 16),
+            _input(_pass, 'Password', obscure: true),
+
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(error!, style: const TextStyle(color: Colors.red)),
+              ),
+
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: loading ? null : _register,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text('Register'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _input(
+    TextEditingController c,
+    String hint, {
+    bool obscure = false,
+  }) {
+    return TextField(
+      controller: c,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: Colors.white10,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _register() async {
     setState(() {
       loading = true;
       error = null;
     });
 
-    final ok = await AuthService.register(
-      username.text.trim(),
-      password.text.trim(),
-    );
+    try {
+      await AuthService.register(_user.text, _pass.text);
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      setState(() => error = 'Register failed');
+    }
 
     setState(() => loading = false);
-
-    if (!mounted) return;
-
-    if (ok) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const BottomNav()),
-      );
-    } else {
-      setState(() => error = 'Registration failed');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Create account',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueAccent,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              TextField(
-                controller: username,
-                decoration: const InputDecoration(
-                  hintText: 'Username',
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              TextField(
-                controller: password,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  hintText: 'Password',
-                ),
-              ),
-
-              const SizedBox(height: 20),
-              if (error != null)
-                Text(error!, style: const TextStyle(color: Colors.red)),
-
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: loading ? null : doRegister,
-                  child: loading
-                      ? const CircularProgressIndicator()
-                      : const Text('Register'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
