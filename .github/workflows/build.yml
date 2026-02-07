@@ -10,44 +10,48 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      # 1) Кодро мегирем
+      - name: Checkout repo
         uses: actions/checkout@v4
 
+      # 2) Flutter
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Flutter doctor
-        run: flutter doctor -v
+      # 3) Тозакунӣ (муҳим)
+      - name: Clean workspace
+        run: |
+          rm -rf raonson
 
-      # 1️⃣ Flutter project (package name lowercase)
+      # 4) Flutter project месозем (android/ ios/ худкор)
       - name: Create Flutter project
         run: |
           flutter create raonson
 
-      # 2️⃣ Copy your code
-      - name: Copy source code
+      # 5) Коди v3-и ту → project
+      - name: Copy app source
         run: |
           rm -rf raonson/lib
           cp -r lib raonson/lib
           cp pubspec.yaml raonson/pubspec.yaml
 
-      # 3️⃣ Get deps
+      # 6) Dependencies
       - name: Get dependencies
         run: |
           cd raonson
           flutter pub get
 
-      # 4️⃣ Build APK
+      # 7) Build APK (release)
       - name: Build APK
         run: |
           cd raonson
           flutter build apk --release
 
-      # 5️⃣ Upload
+      # 8) Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Raonson-APK
+          name: raonson-apk
           path: raonson/build/app/outputs/flutter-apk/app-release.apk
