@@ -1,64 +1,48 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'api.dart';
 
 class HttpService {
   static const Duration _timeout = Duration(seconds: 15);
 
-  // ===== GET =====
-  static Future<dynamic> get(String url) async {
+  static Future<dynamic> get(String path) async {
     try {
-      final res = await http.get(
-        Uri.parse(url),
-        headers: _headers(),
-      ).timeout(_timeout);
+      final res = await http
+          .get(Uri.parse('${Api.baseUrl}$path'))
+          .timeout(_timeout);
 
       return _handleResponse(res);
-    } on SocketException {
-      throw Exception('No internet connection');
     } on TimeoutException {
       throw Exception('Request timeout');
     }
   }
 
-  // ===== POST =====
-  static Future<dynamic> post(String url, Map<String, dynamic> body) async {
+  static Future<dynamic> post(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     try {
-      final res = await http.post(
-        Uri.parse(url),
-        headers: _headers(),
-        body: jsonEncode(body),
-      ).timeout(_timeout);
+      final res = await http
+          .post(
+            Uri.parse('${Api.baseUrl}$path'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(_timeout);
 
       return _handleResponse(res);
-    } on SocketException {
-      throw Exception('No internet connection');
     } on TimeoutException {
       throw Exception('Request timeout');
     }
   }
 
-  // ===== HEADERS =====
-  static Map<String, String> _headers() {
-    return {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-  }
-
-  // ===== RESPONSE HANDLER =====
   static dynamic _handleResponse(http.Response res) {
-    final status = res.statusCode;
-
-    if (res.body.isEmpty) return null;
-
-    final data = jsonDecode(res.body);
-
-    if (status >= 200 && status < 300) {
-      return data;
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      if (res.body.isEmpty) return null;
+      return jsonDecode(res.body);
     } else {
-      // сервер хатогиро худ менависад
-      throw Exception(data.toString());
+      throw Exception('HTTP ${res.statusCode}: ${res.body}');
     }
   }
 }
