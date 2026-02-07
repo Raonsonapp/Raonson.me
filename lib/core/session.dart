@@ -1,29 +1,42 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Session {
-  static const String _keyUsername = 'username';
+  static const _keyUser = 'user';
+  static const _keyToken = 'token';
 
-  // save username
-  static Future<void> save(String username) async {
+  /// Save user session
+  static Future<void> save({
+    required String username,
+    String? token,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyUsername, username);
+    await prefs.setString(_keyUser, username);
+    if (token != null) {
+      await prefs.setString(_keyToken, token);
+    }
   }
 
-  // get username
-  static Future<String?> username() async {
+  /// Get username
+  static Future<String?> getUser() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_keyUsername);
+    return prefs.getString(_keyUser);
   }
 
-  // check logged in
+  /// Get token
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyToken);
+  }
+
+  /// Check login status
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.containsKey(_keyUsername);
+    return prefs.containsKey(_keyUser);
   }
 
-  // logout
+  /// Logout
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_keyUsername);
+    await prefs.clear();
   }
 }
