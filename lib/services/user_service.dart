@@ -1,40 +1,18 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../core/config.dart';
-import 'auth_service.dart';
+import '../core/api.dart';
+import '../core/http_service.dart';
+import '../models/user.dart';
 
 class UserService {
-  static Map<String, String> _headers() => {
-        'Content-Type': 'application/json',
-        if (AuthService.token != null)
-          'Authorization': 'Bearer ${AuthService.token}',
-      };
-
-  static Future<Map<String, dynamic>> getProfile() async {
-    final res = await http
-        .get(
-          Uri.parse('${AppConfig.baseUrl}/profile'),
-          headers: _headers(),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    throw Exception('Profile load failed');
+  static Future<List<UserModel>> search(String q) async {
+    final res = await HttpService.get('${Api.search}?q=$q');
+    final List data = jsonDecode(res.body);
+    return data.map((e) => UserModel.fromJson(e)).toList();
   }
 
-  static Future<List> getUserPosts() async {
-    final res = await http
-        .get(
-          Uri.parse('${AppConfig.baseUrl}/profile/posts'),
-          headers: _headers(),
-        )
-        .timeout(const Duration(seconds: 10));
-
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    throw Exception('Posts load failed');
+  static Future<UserModel> me() async {
+    final res = await HttpService.get(Api.me);
+    final data = jsonDecode(res.body);
+    return UserModel.fromJson(data);
   }
 }
