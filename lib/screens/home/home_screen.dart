@@ -1,7 +1,29 @@
 import 'package:flutter/material.dart';
+import '../../models/post.dart';
+import '../../services/post_service.dart';
+import 'add_post_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Post> posts = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    load();
+  }
+
+  Future<void> load() async {
+    posts = await PostService.fetchPosts();
+    setState(() => loading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,71 +34,33 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.add_box_outlined),
-          onPressed: () {
-            // ➕ Add Post (ҚАДАМИ 5)
+          onPressed: () async {
+            final r = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddPostScreen()),
+            );
+            if (r == true) load();
           },
         ),
-        title: const Text(
-          'Raonson',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.smart_toy_outlined), // Jarvis
-            onPressed: () {},
-          ),
+        title: const Text('Raonson'),
+        actions: const [
+          Icon(Icons.smart_toy_outlined),
+          SizedBox(width: 12),
         ],
       ),
-      body: ListView(
-        children: const [
-          _StoriesBar(),
-          Divider(color: Colors.white24),
-          _PostPlaceholder(),
-          _PostPlaceholder(),
-        ],
-      ),
-    );
-  }
-}
-
-class _StoriesBar extends StatelessWidget {
-  const _StoriesBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 90,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (_, i) => Column(
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.blueAccent,
-              child: CircleAvatar(
-                radius: 26,
-                backgroundColor: const Color(0xFF0B0F1A),
-                child: Text(
-                  'U$i',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: posts.length,
+              itemBuilder: (_, i) => _PostCard(posts[i]),
             ),
-            const SizedBox(height: 6),
-            Text('user$i',
-                style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          ],
-        ),
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemCount: 10,
-      ),
     );
   }
 }
 
-class _PostPlaceholder extends StatelessWidget {
-  const _PostPlaceholder();
+class _PostCard extends StatelessWidget {
+  final Post post;
+  const _PostCard(this.post);
 
   @override
   Widget build(BuildContext context) {
@@ -85,46 +69,26 @@ class _PostPlaceholder extends StatelessWidget {
       children: [
         ListTile(
           leading: const CircleAvatar(child: Text('U')),
-          title: const Text('username',
-              style: TextStyle(color: Colors.white)),
-          trailing: IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onPressed: () {},
-          ),
+          title: Text(post.username,
+              style: const TextStyle(color: Colors.white)),
         ),
-        Container(
-          height: 260,
-          color: Colors.white10,
-          alignment: Alignment.center,
-          child: const Icon(Icons.image, size: 80, color: Colors.white24),
-        ),
+        Image.network(post.imageUrl, fit: BoxFit.cover),
         Row(
           children: const [
-            IconButton(
-              icon: Icon(Icons.favorite_border, color: Colors.white),
-              onPressed: null,
-            ),
-            IconButton(
-              icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
-              onPressed: null,
-            ),
-            IconButton(
-              icon: Icon(Icons.send_outlined, color: Colors.white),
-              onPressed: null,
-            ),
+            Icon(Icons.favorite_border, color: Colors.white),
+            SizedBox(width: 12),
+            Icon(Icons.chat_bubble_outline, color: Colors.white),
             Spacer(),
-            IconButton(
-              icon: Icon(Icons.bookmark_border, color: Colors.white),
-              onPressed: null,
-            ),
+            Icon(Icons.bookmark_border, color: Colors.white),
           ],
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text('Description…',
-              style: TextStyle(color: Colors.white70)),
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: Text(
+            post.caption,
+            style: const TextStyle(color: Colors.white70),
+          ),
         ),
-        const SizedBox(height: 12),
       ],
     );
   }
