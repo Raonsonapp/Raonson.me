@@ -1,31 +1,38 @@
 import '../core/http_service.dart';
+import '../core/api.dart';
 
 class PostActionsService {
-  static Future<void> like(int postId) async {
+  static Future<void> like(int postId, String username) async {
     await HttpService.post(
-      '/posts/$postId/like',
-      {}, // ✅ ҳатман body
+      '${Api.baseUrl}/posts/$postId/like',
+      {'username': username},
     );
   }
 
-  static Future<void> unlike(int postId) async {
+  static Future<void> unlike(int postId, String username) async {
     await HttpService.post(
-      '/posts/$postId/unlike',
-      {},
+      '${Api.baseUrl}/posts/$postId/unlike',
+      {'username': username},
     );
   }
 
-  static Future<void> save(int postId) async {
+  static Future<void> save(int postId, String username) async {
     await HttpService.post(
-      '/posts/$postId/save',
-      {},
+      '${Api.baseUrl}/posts/$postId/save',
+      {'username': username},
     );
   }
 
-  static Future<void> share(int postId) async {
+  static Future<void> unsave(int postId, String username) async {
     await HttpService.post(
-      '/posts/$postId/share',
-      {},
+      '${Api.baseUrl}/posts/$postId/unsave',
+      {'username': username},
+    );
+  }
+
+  static Future<List<dynamic>> getSaved(String username) async {
+    return await HttpService.get(
+      '${Api.baseUrl}/users/$username/saved',
     );
   }
 }
