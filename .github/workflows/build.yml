@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Flutter
@@ -18,28 +18,17 @@ jobs:
         with:
           channel: stable
 
-      - name: Flutter version
-        run: flutter --version
-
-      - name: Create Flutter project
-        run: |
-          flutter create raonson
-          rm -rf raonson/lib
-          cp -r lib raonson/lib
-          cp pubspec.yaml raonson/pubspec.yaml
+      - name: Flutter doctor
+        run: flutter doctor -v
 
       - name: Get dependencies
-        run: |
-          cd raonson
-          flutter pub get
+        run: flutter pub get
 
-      - name: Build APK (VERBOSE)
-        run: |
-          cd raonson
-          flutter build apk --release -v
+      - name: Build APK (release, verbose)
+        run: flutter build apk --release -v
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: raonson-apk
-          path: raonson/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
