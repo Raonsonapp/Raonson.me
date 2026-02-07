@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/chat_service.dart';
-import 'chat_screen.dart';
+import '../../core/session.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -10,45 +9,33 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  List<String> users = [];
-  bool loading = true;
+  String _me = '';
 
   @override
   void initState() {
     super.initState();
-    load();
+    _init();
   }
 
-  Future<void> load() async {
-    users = await ChatService.chats();
-    setState(() => loading = false);
+  Future<void> _init() async {
+    final u = await Session.username() ?? '';
+    setState(() => _me = u);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0F1A),
       appBar: AppBar(title: const Text('Chats')),
-      body: loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (_, i) => ListTile(
-                leading: CircleAvatar(
-                  child: Text(users[i][0].toUpperCase()),
-                ),
-                title: Text(users[i],
-                    style: const TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ChatScreen(username: users[i]),
-                    ),
-                  );
-                },
-              ),
-            ),
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const CircleAvatar(child: Icon(Icons.person)),
+            title: const Text('System'),
+            subtitle: Text('Hello $_me 👋'),
+            onTap: () {},
+          ),
+        ],
+      ),
     );
   }
 }
