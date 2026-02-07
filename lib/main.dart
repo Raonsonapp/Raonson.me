@@ -1,45 +1,24 @@
 import 'package:flutter/material.dart';
 import 'core/session.dart';
+import 'navigation/bottom_nav.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const RaonsonApp());
 }
 
-class RaonsonApp extends StatelessWidget {
+class RaonsonApp extends StatefulWidget {
   const RaonsonApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Raonson',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0B0F1A),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-        useMaterial3: true,
-      ),
-      home: const Root(),
-    );
-  }
+  State<RaonsonApp> createState() => _RaonsonAppState();
 }
 
-/// Root = муайян мекунад:
-/// - агар session ҳаст → Home
-/// - агар нест → Login
-class Root extends StatefulWidget {
-  const Root({super.key});
-
-  @override
-  State<Root> createState() => _RootState();
-}
-
-class _RootState extends State<Root> {
-  bool? _loggedIn;
+class _RaonsonAppState extends State<RaonsonApp> {
+  bool _loading = true;
+  bool _loggedIn = false;
 
   @override
   void initState() {
@@ -48,56 +27,42 @@ class _RootState extends State<Root> {
   }
 
   Future<void> _checkSession() async {
-    final ok = await Session.isLoggedIn();
-    setState(() => _loggedIn = ok);
+    final user = await Session.username();
+    setState(() {
+      _loggedIn = user != null && user.isNotEmpty;
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loggedIn == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // ⚠️ Ҳоло screen-ҳо ҳанӯз нестанд
-    // ҚАДАМ 3-4 меорем
-    return _loggedIn!
-        ? const _HomePlaceholder()
-        : const _LoginPlaceholder();
-  }
-}
-
-/// placeholders муваққатӣ ҳастанд
-/// дар қадамҳои баъдӣ иваз мешаванд
-class _LoginPlaceholder extends StatelessWidget {
-  const _LoginPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'LOGIN SCREEN (қадам 3)',
-          style: TextStyle(fontSize: 18),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Raonson',
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF0F1424),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF0F1424),
+          elevation: 0,
         ),
       ),
-    );
-  }
-}
 
-class _HomePlaceholder extends StatelessWidget {
-  const _HomePlaceholder();
+      // ===== ROUTES =====
+      routes: {
+        '/login': (_) => const LoginScreen(),
+        '/register': (_) => const RegisterScreen(),
+        '/home': (_) => const BottomNav(),
+      },
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text(
-          'HOME SCREEN (қадам 4)',
-          style: TextStyle(fontSize: 18),
-        ),
-      ),
+      // ===== ROOT =====
+      home: _loading
+          ? const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            )
+          : _loggedIn
+              ? const BottomNav()
+              : const LoginScreen(),
     );
   }
 }
