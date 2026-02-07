@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'core/session.dart';
-import 'screens/auth/login_screen.dart';
-import 'navigation/bottom_nav.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,35 +13,22 @@ class RaonsonApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Raonson',
-      theme: ThemeData.dark(),
-      home: const Root(),
-    );
-  }
-}
+      home: FutureBuilder<bool>(
+        future: Session.isLoggedIn(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
 
-class Root extends StatelessWidget {
-  const Root({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: Session.isLoggedIn(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.data == true) {
-          return const BottomNav(); // ⬅⬅⬅ рост ба home меравад
-        } else {
-          return const LoginScreen();
-        }
-      },
+          if (snapshot.data == true) {
+            return const Placeholder(); // 👉 баъд HomeScreen
+          } else {
+            return const Placeholder(); // 👉 баъд LoginScreen
+          }
+        },
+      ),
     );
   }
 }
