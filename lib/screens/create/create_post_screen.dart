@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import '../../services/post_service.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../core/session.dart';
+import '../../services/post_service.dart';
+import '../../services/upload_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -10,29 +13,34 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  final _imageCtrl = TextEditingController();
-  final _captionCtrl = TextEditingController();
+  final TextEditingController _captionCtrl = TextEditingController();
+  File? _image;
   bool _loading = false;
 
-  Future<void> _submit() async {
-    final image = _imageCtrl.text.trim();
-    final caption = _captionCtrl.text.trim();
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() => _image = File(picked.path));
+    }
+  }
 
-    if (image.isEmpty) return;
+  Future<void> _publish() async {
+    if (_image == null) return;
 
     setState(() => _loading = true);
-
     try {
       final username = await Session.username() ?? '';
+      final imageUrl = await UploadService.uploadImage(_image!);
       await PostService.create(
         username: username,
-        imageUrl: image,
-        caption: caption,
+        imageUrl: imageUrl,
+        caption: _captionCtrl.text.trim(),
       );
       if (mounted) Navigator.pop(context, true);
-    } catch (_) {
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to create post')),
+        const SnackBar(content: Text('Publish failed')),
       );
     } finally {
       setState(() => _loading = false);
@@ -42,31 +50,40 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('New Post'),
-      ),
+      appBar: AppBar(title: const Text('New Post')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _imageCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Image URL',
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                height: 220,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1C2333),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _image == null
+                    ? const Center(child: Icon(Icons.add_a_photo, size: 36))
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(_image!, fit: BoxFit.cover),
+                      ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: _captionCtrl,
               decoration: const InputDecoration(
-                labelText: 'Caption',
+                hintText: 'Write a caption…',
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _loading ? null : _submit,
+                onPressed: _loading ? null : _publish,
                 child: _loading
                     ? const CircularProgressIndicator()
                     : const Text('Publish'),
