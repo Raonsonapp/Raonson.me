@@ -4,6 +4,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/reels/reels_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/profile/profile_screen.dart';
+import '../screens/chat/chat_list_screen.dart';
+import '../screens/add/add_post_screen.dart';
 
 class BottomNav extends StatefulWidget {
   const BottomNav({super.key});
@@ -15,12 +17,12 @@ class BottomNav extends StatefulWidget {
 class _BottomNavState extends State<BottomNav> {
   int index = 0;
 
-  final screens = const [
-    HomeScreen(),
-    ReelsScreen(),
-    SizedBox(), // Add (later)
-    SearchScreen(),
-    ProfileScreen(),
+  final List<Widget> screens = const [
+    HomeScreen(),        // 0
+    ReelsScreen(),       // 1
+    SizedBox(),          // 2 -> Add handled separately
+    SearchScreen(),      // 3
+    ProfileScreen(),     // 4
   ];
 
   @override
@@ -29,13 +31,13 @@ class _BottomNavState extends State<BottomNav> {
       backgroundColor: const Color(0xFF0B0F1A),
       body: screens[index],
       bottomNavigationBar: Container(
-        height: 70,
+        height: 72,
         decoration: BoxDecoration(
           color: const Color(0xFF0B0F1A),
           boxShadow: [
             BoxShadow(
               color: Colors.blueAccent.withOpacity(0.35),
-              blurRadius: 25,
+              blurRadius: 28,
               offset: const Offset(0, -6),
             ),
           ],
@@ -43,54 +45,85 @@ class _BottomNavState extends State<BottomNav> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _item(Icons.home_outlined, Icons.home, 0),
-            _item(Icons.play_circle_outline, Icons.play_circle, 1),
-            _addButton(),
-            _item(Icons.search, Icons.search, 3),
-            _item(Icons.person_outline, Icons.person, 4),
+            _navItem(
+              icon: Icons.home_outlined,
+              active: Icons.home,
+              i: 0,
+            ),
+            _navItem(
+              icon: Icons.play_circle_outline,
+              active: Icons.play_circle,
+              i: 1,
+            ),
+            _addButton(context),
+            _navItem(
+              icon: Icons.search,
+              active: Icons.search,
+              i: 3,
+            ),
+            _navItem(
+              icon: Icons.person_outline,
+              active: Icons.person,
+              i: 4,
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _item(IconData icon, IconData active, int i) {
-    final activeTab = index == i;
+  Widget _navItem({
+    required IconData icon,
+    required IconData active,
+    required int i,
+  }) {
+    final bool selected = index == i;
+
     return GestureDetector(
-      onTap: () => setState(() => index = i),
+      onTap: () {
+        setState(() => index = i);
+      },
       child: Icon(
-        activeTab ? active : icon,
-        color: activeTab ? Colors.blueAccent : Colors.white54,
+        selected ? active : icon,
         size: 26,
+        color: selected ? Colors.blueAccent : Colors.white54,
       ),
     );
   }
 
-  Widget _addButton() {
+  Widget _addButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Add Post (қадами дигар)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AddPostScreen(),
+          ),
+        );
       },
       child: Container(
-        width: 54,
-        height: 54,
+        width: 56,
+        height: 56,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: const LinearGradient(
-            colors: [Colors.blueAccent, Colors.lightBlue],
+            colors: [
+              Colors.blueAccent,
+              Colors.lightBlue,
+            ],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.blueAccent.withOpacity(0.6),
-              blurRadius: 20,
-              spreadRadius: 4,
+              color: Colors.blueAccent.withOpacity(0.7),
+              blurRadius: 22,
+              spreadRadius: 2,
             ),
           ],
         ),
         child: const Icon(
           Icons.add,
-          color: Colors.white,
           size: 32,
+          color: Colors.white,
         ),
       ),
     );
