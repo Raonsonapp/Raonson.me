@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../services/upload_service.dart';
 
-/// ===============================
-/// ADD POST SCREEN – RAONSON v2
-/// Create / Preview / Publish
-/// ===============================
+/// =======================================
+/// ADD POST SCREEN – RAONSON v2 (REAL)
+/// =======================================
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -13,28 +13,24 @@ class AddPostScreen extends StatefulWidget {
 }
 
 class _AddPostScreenState extends State<AddPostScreen> {
-  final TextEditingController _captionController = TextEditingController();
+  final TextEditingController _caption = TextEditingController();
 
   bool hasMedia = false;
   bool publishing = false;
+  String? error;
 
   @override
   void dispose() {
-    _captionController.dispose();
+    _caption.dispose();
     super.dispose();
   }
 
-  // -------------------------------
-  // BUILD
-  // -------------------------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F1A),
       appBar: _appBar(),
-      body: SafeArea(
-        child: hasMedia ? _editor() : _picker(),
-      ),
+      body: hasMedia ? _editor() : _picker(),
     );
   }
 
@@ -76,44 +72,24 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   // -------------------------------
-  // MEDIA PICKER
+  // PICKER (MOCK MEDIA)
   // -------------------------------
   Widget _picker() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _pickerButton(
-            icon: Icons.photo_library,
-            label: 'Gallery',
-            onTap: () {
-              setState(() {
-                hasMedia = true; // mock select
-              });
-            },
-          ),
-          const SizedBox(height: 20),
-          _pickerButton(
-            icon: Icons.camera_alt,
-            label: 'Camera',
-            onTap: () {
-              setState(() {
-                hasMedia = true; // mock capture
-              });
-            },
-          ),
+          _pickerBtn(Icons.photo_library, 'Gallery'),
+          const SizedBox(height: 16),
+          _pickerBtn(Icons.camera_alt, 'Camera'),
         ],
       ),
     );
   }
 
-  Widget _pickerButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
+  Widget _pickerBtn(IconData icon, String label) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => setState(() => hasMedia = true),
       child: Container(
         width: 220,
         height: 52,
@@ -151,7 +127,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   // -------------------------------
-  // EDITOR (PREVIEW + CAPTION)
+  // EDITOR
   // -------------------------------
   Widget _editor() {
     return ListView(
@@ -160,7 +136,15 @@ class _AddPostScreenState extends State<AddPostScreen> {
         _preview(),
         const SizedBox(height: 16),
         _captionField(),
-        const SizedBox(height: 16),
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              error!,
+              style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        const SizedBox(height: 20),
         _options(),
       ],
     );
@@ -185,7 +169,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   Widget _captionField() {
     return TextField(
-      controller: _captionController,
+      controller: _caption,
       maxLines: 4,
       decoration: InputDecoration(
         hintText: 'Write a caption...',
@@ -199,20 +183,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
     );
   }
 
-  // -------------------------------
-  // OPTIONS
-  // -------------------------------
   Widget _options() {
     return Column(
       children: [
-        _optionTile(Icons.tag, 'Tag people'),
-        _optionTile(Icons.location_on, 'Add location'),
-        _optionTile(Icons.music_note, 'Add music'),
+        _option(Icons.tag, 'Tag people'),
+        _option(Icons.location_on, 'Add location'),
+        _option(Icons.music_note, 'Add music'),
       ],
     );
   }
 
-  Widget _optionTile(IconData icon, String title) {
+  Widget _option(IconData icon, String title) {
     return ListTile(
       leading: Icon(icon),
       title: Text(title),
@@ -222,16 +203,30 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   // -------------------------------
-  // PUBLISH
+  // PUBLISH (REAL)
   // -------------------------------
   Future<void> _publish() async {
-    setState(() => publishing = true);
+    if (_caption.text.trim().isEmpty) {
+      setState(() => error = 'Caption required');
+      return;
+    }
 
-    // TODO: upload to server
-    await Future.delayed(const Duration(seconds: 2));
+    setState(() {
+      publishing = true;
+      error = null;
+    });
 
-    if (!mounted) return;
+    try {
+      await UploadService.createPost(
+        caption: _caption.text.trim(),
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true); // 👈 бармегардем ба Home
+    } catch (e) {
+      setState(() => error = 'Upload failed');
+    }
+
     setState(() => publishing = false);
-    Navigator.pop(context);
   }
 }
