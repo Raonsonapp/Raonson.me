@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+
+// CORE
 import 'core/session.dart';
+
+// NAVIGATION
 import 'navigation/bottom_nav.dart';
+
+// AUTH
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
 
@@ -17,21 +23,28 @@ class RaonsonApp extends StatefulWidget {
 }
 
 class _RaonsonAppState extends State<RaonsonApp> {
-  bool _loading = true;
+  bool _checkingSession = true;
   bool _loggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    _checkSession();
+    _checkAuth();
   }
 
-  Future<void> _checkSession() async {
-    final user = await Session.username();
-    setState(() {
-      _loggedIn = user != null && user.isNotEmpty;
-      _loading = false;
-    });
+  Future<void> _checkAuth() async {
+    try {
+      final user = await Session.username();
+      setState(() {
+        _loggedIn = user != null && user.isNotEmpty;
+        _checkingSession = false;
+      });
+    } catch (_) {
+      setState(() {
+        _loggedIn = false;
+        _checkingSession = false;
+      });
+    }
   }
 
   @override
@@ -46,6 +59,9 @@ class _RaonsonAppState extends State<RaonsonApp> {
           backgroundColor: Color(0xFF0F1424),
           elevation: 0,
         ),
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(),
+        ),
       ),
 
       // ===== ROUTES =====
@@ -56,9 +72,11 @@ class _RaonsonAppState extends State<RaonsonApp> {
       },
 
       // ===== ROOT =====
-      home: _loading
+      home: _checkingSession
           ? const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
             )
           : _loggedIn
               ? const BottomNav()
