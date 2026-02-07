@@ -1,11 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../models/post_model.dart';
-import '../../services/post_service.dart';
+import '../../core/http_service.dart';
 import '../../core/session.dart';
-
-/// =======================================
-/// PROFILE SCREEN – RAONSON v2 (FULL)
-/// =======================================
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,27 +12,35 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  String username = 'user';
-  List<PostModel> posts = [];
+  String username = '';
   bool loading = true;
+  List posts = [];
+
+  late TabController _tab;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _load();
+    _tab = TabController(length: 2, vsync: this);
+    _init();
   }
 
-  Future<void> _load() async {
-    username = await Session.username() ?? 'user';
+  Future<void> _init() async {
+    username = await Session.username() ?? '';
+    await _loadPosts();
+  }
 
-    final data = await PostService.getPosts();
-    setState(() {
-      posts = data.where((p) => p.username == username).toList();
-      loading = false;
-    });
+  Future<void> _loadPosts() async {
+    final res = await HttpService.get('/posts');
+    final all = jsonDecode(res.body);
+    posts = all.where((p) => p['username'] == username).toList();
+    setState(() => loading = false);
+  }
+
+  @override
+  void dispose() {
+    _tab.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,6 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                 _header(),
                 _stats(),
                 _buttons(),
+                const SizedBox(height: 12),
                 _tabs(),
                 Expanded(child: _tabViews()),
               ],
@@ -58,14 +63,15 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // -------------------------------
-  // APP BAR
-  // -------------------------------
+  // ================= APP BAR =================
   AppBar _appBar() {
     return AppBar(
       backgroundColor: const Color(0xFF0B0F1A),
       elevation: 0,
-      title: Text(username),
+      title: Text(
+        username,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
       actions: [
         IconButton(
           icon: const Icon(Icons.logout),
@@ -78,14 +84,12 @@ class _ProfileScreenState extends State<ProfileScreen>
               (_) => false,
             );
           },
-        )
+        ),
       ],
     );
   }
 
-  // -------------------------------
-  // HEADER
-  // -------------------------------
+  // ================= HEADER =================
   Widget _header() {
     return Padding(
       padding: const EdgeInsets.only(top: 16),
@@ -97,9 +101,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // -------------------------------
-  // STATS
-  // -------------------------------
+  // ================= STATS =================
   Widget _stats() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -133,27 +135,21 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // -------------------------------
-  // BUTTONS
-  // -------------------------------
+  // ================= BUTTONS =================
   Widget _buttons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Expanded(
-            child: _button('Edit profile'),
-          ),
+          Expanded(child: _btn('Edit profile')),
           const SizedBox(width: 12),
-          Expanded(
-            child: _button('Share profile'),
-          ),
+          Expanded(child: _btn('Share profile')),
         ],
       ),
     );
   }
 
-  Widget _button(String label) {
+  Widget _btn(String label) {
     return Container(
       height: 36,
       alignment: Alignment.center,
@@ -165,33 +161,29 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  // -------------------------------
-  // TABS
-  // -------------------------------
+  // ================= TABS =================
   Widget _tabs() {
     return TabBar(
-      controller: _tabController,
+      controller: _tab,
       indicatorColor: Colors.blueAccent,
       tabs: const [
         Tab(icon: Icon(Icons.grid_on)),
-        Tab(icon: Icon(Icons.bookmark)),
+        Tab(icon: Icon(Icons.bookmark_border)),
       ],
     );
   }
 
   Widget _tabViews() {
     return TabBarView(
-      controller: _tabController,
+      controller: _tab,
       children: [
         _postsGrid(),
-        _savedGrid(),
+        _saved(),
       ],
     );
   }
 
-  // -------------------------------
-  // POSTS GRID
-  // -------------------------------
+  // ================= POSTS GRID =================
   Widget _postsGrid() {
     if (posts.isEmpty) {
       return const Center(
@@ -210,19 +202,20 @@ class _ProfileScreenState extends State<ProfileScreen>
         crossAxisSpacing: 2,
       ),
       itemCount: posts.length,
-      itemBuilder: (context, index) {
+      itemBuilder: (_, i) {
         return Container(
-          color: const Color(0xFF1C2333),
-          child: const Icon(Icons.image, color: Colors.white24),
+          color: const Color(0xFF141B2D),
+          child: const Icon(
+            Icons.image,
+            color: Colors.white24,
+          ),
         );
       },
     );
   }
 
-  // -------------------------------
-  // SAVED GRID (MOCK)
-  // -------------------------------
-  Widget _savedGrid() {
+  // ================= SAVED (MOCK) =================
+  Widget _saved() {
     return const Center(
       child: Text(
         'Saved posts',
