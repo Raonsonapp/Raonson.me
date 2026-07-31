@@ -131,6 +131,7 @@ Deploy as a Web Service from this repo (Render auto-detects the `Dockerfile`), s
 | `/start` | Start / choose language (supports `?start=ref_<id>` referral links) |
 | `/settings` | Change interface language |
 | `/help` | Show the in-bot guide |
+| `/info` | About the bot + total user count (stored durably on GitHub) |
 | `/myid` | Show your Telegram ID (for setting `ADMIN_CHAT_ID`) |
 
 ---

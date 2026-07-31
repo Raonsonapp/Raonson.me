@@ -88,6 +88,9 @@ func main() {
 	// ReferralStore маълумоти даъватҳоро дар репои давлатии GitHub (на дар
 	// SQLite-и муваққатии Render) нигоҳ медорад — то бо ҳар деплой гум нашавад
 	referralStore := api.NewReferralStore(gitHubAppClient)
+	// StatsStore рӯйхати корбаронро (барои "шумораи корбарон") низ дар ҳамон
+	// репои давлатӣ нигоҳ медорад — то бо ҳар деплой сифр нашавад
+	statsStore := api.NewStatsStore(gitHubAppClient)
 
 	deps := &handlers.Deps{
 		Bot:         bot,
@@ -101,6 +104,7 @@ func main() {
 		GitHubApp:   gitHubAppClient,
 		AICoder:     aiCoderClient,
 		Referrals:   referralStore,
+		Stats:       statsStore,
 		Translator:  translator,
 		Cache:       cache,
 		Config:      cfg,
@@ -342,6 +346,8 @@ func routeCommand(d *handlers.Deps, msg *tgbotapi.Message) {
 		handlers.HandleMyID(d, msg)
 	case "help":
 		handlers.HandleHelp(d, msg)
+	case "info":
+		handlers.HandleInfo(d, msg)
 	default:
 		handlers.HandleStart(d, msg)
 	}
@@ -417,6 +423,9 @@ func routeText(d *handlers.Deps, msg *tgbotapi.Message) {
 			return
 		case buttonLabel(lang, "btn_ai_chat"):
 			handlers.HandleAIChatButton(d, msg)
+			return
+		case buttonLabel(lang, "btn_info"):
+			handlers.HandleInfo(d, msg)
 			return
 		case buttonLabel(lang, "btn_exit_chat"):
 			handlers.HandleExitAIChatButton(d, msg)

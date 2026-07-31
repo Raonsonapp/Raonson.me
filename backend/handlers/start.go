@@ -25,6 +25,7 @@ type Deps struct {
 	GitHubApp   *api.GitHubAppClient
 	AICoder     *api.AICoderClient
 	Referrals   *api.ReferralStore
+	Stats       *api.StatsStore
 	Translator  *utils.Translator
 	Cache       *utils.Cache
 	Config      *config.Config
@@ -48,6 +49,14 @@ func HandleStart(d *Deps, msg *tgbotapi.Message) {
 	// /start ҳамеша ба ҳолати тоза бармегардад — агар корбар дар ҳолати
 	// гуфтугӯ бо AI монда бошад, онро мебандем
 	delete(PendingAIChat, telegramID)
+
+	// Корбарро дар рӯйхати доимӣ (GitHub) сабт мекунем — барои "шумораи
+	// корбарон" дар /info. Дар background, то /start суст нашавад
+	go func() {
+		if err := d.Stats.RegisterUser(telegramID); err != nil {
+			utils.LogError("stats: failed to register user %d: %v", telegramID, err)
+		}
+	}()
 
 	// Коркарди даъват (даъватшуда → GitHub API-и ReferralStore) метавонад
 	// якчанд сония тӯл кашад — онро дар background мебарорем, то паёми

@@ -93,6 +93,8 @@ var EnglishMessages = map[string]string{
 
 	"btn_invite":        "🎁 Invite",
 	"btn_ai_chat":       "🤖 Chat with AI",
+	"btn_info":          "ℹ️ Info",
+	"info_text":         "ℹ️ *App Builder Bot*\n\nWith this bot you build a real Android app (APK) — no coding needed, powered by AI.\n\n👥 *Users:* %s\n\n🛠 *Tech:*\n• AI (design + code) via OpenRouter\n• Flutter for the app\n• GitHub Actions for the APK build\n\n✨ *Features:*\n🏗 Build an app from a description\n➕ Add a function\n📥 Import your own code (ZIP/GitHub)\n📦 Fetch the APK\n🤖 Chat with AI\n🧮 Price Calculator\n🎁 Invites (unlimited usage)\n\nCommands: /start /help /info",
 	"btn_exit_chat":     "⬅️ Exit chat",
 	"ai_chat_intro":     "🤖 You're now chatting with the AI. Write anything — a question, a translation, an app idea, or just to talk. I'll reply.\n\nTap \"⬅️ Exit chat\" to leave.",
 	"ai_chat_error":     "😔 The AI couldn't reply right now (the free servers may be busy). Please try again.",
