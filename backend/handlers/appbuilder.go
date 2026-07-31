@@ -13,11 +13,12 @@ import (
 	"appbuilder-bot/backend/utils"
 )
 
-// appBuilderState маълумоти байни зинаҳои сохтани барномаро (ном, логотип)
-// то расидан ба тавсифи функсияҳо нигоҳ медорад
+// appBuilderState маълумоти байни зинаҳои сохтани барномаро (ном, логотип,
+// технология) то расидан ба тавсифи функсияҳо нигоҳ медорад
 type appBuilderState struct {
 	DisplayName string
 	LogoBytes   []byte
+	Tech        string // "flutter" (APK) ё "web" (сайти зинда)
 }
 
 var appBuilderSessions = make(map[int64]*appBuilderState)
@@ -173,8 +174,7 @@ func HandleAppLogoPhoto(d *Deps, msg *tgbotapi.Message) {
 	}
 
 	sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_logo_received"))
-	PendingAppName[msg.From.ID] = true
-	sendText(d, msg.Chat.ID, api.GetMessage(lang, "ask_app_name"))
+	askAppTech(d, msg.Chat.ID, lang)
 }
 
 // HandleAppLogoSkipText вақте корбар дар ҷои акс матн мефиристад (масалан "-")
@@ -184,8 +184,45 @@ func HandleAppLogoSkipText(d *Deps, msg *tgbotapi.Message) {
 	lang := getUserLang(d, msg.From.ID)
 
 	sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_logo_skipped"))
-	PendingAppName[msg.From.ID] = true
-	sendText(d, msg.Chat.ID, api.GetMessage(lang, "ask_app_name"))
+	askAppTech(d, msg.Chat.ID, lang)
+}
+
+// askAppTech интихоби технологияро (Flutter/APK ё Web/сайт) ҳамчун тугмаҳои
+// inline нишон медиҳад — то корбар пеш аз тавсиф навъи барномаро интихоб кунад
+func askAppTech(d *Deps, chatID int64, lang string) {
+	message := tgbotapi.NewMessage(chatID, api.GetMessage(lang, "ask_app_tech"))
+	message.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(api.GetMessage(lang, "btn_tech_flutter"), "apptech:flutter"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData(api.GetMessage(lang, "btn_tech_web"), "apptech:web"),
+		),
+	)
+	d.Bot.Send(message)
+}
+
+// HandleAppTechCallback интихоби технологияро мегирад ва баъд тавсифро мепурсад
+func HandleAppTechCallback(d *Deps, cb *tgbotapi.CallbackQuery) {
+	callback := tgbotapi.NewCallback(cb.ID, "")
+	d.Bot.Request(callback)
+
+	lang := getUserLang(d, cb.From.ID)
+	tech := strings.TrimPrefix(cb.Data, "apptech:")
+
+	state := appBuilderSessions[cb.From.ID]
+	if state == nil {
+		state = &appBuilderState{}
+		appBuilderSessions[cb.From.ID] = state
+	}
+	state.Tech = tech
+
+	PendingAppName[cb.From.ID] = true
+	if tech == "web" {
+		sendText(d, cb.Message.Chat.ID, api.GetMessage(lang, "ask_app_name_web"))
+	} else {
+		sendText(d, cb.Message.Chat.ID, api.GetMessage(lang, "ask_app_name"))
+	}
 }
 
 // downloadTelegramFile байти файли Telegram-ро (масалан акс) тавассути
@@ -223,11 +260,21 @@ func HandleAppNameText(d *Deps, msg *tgbotapi.Message) {
 	state := appBuilderSessions[msg.From.ID]
 	displayName := description
 	var logoBytes []byte
+	tech := "flutter"
 	if state != nil {
 		if state.DisplayName != "" {
 			displayName = state.DisplayName
 		}
 		logoBytes = state.LogoBytes
+		if state.Tech != "" {
+			tech = state.Tech
+		}
+	}
+
+	// Барномаи веб роҳи алоҳида дорад (index.html → GitHub Pages), на APK
+	if tech == "web" {
+		runWebBuild(d, msg, lang, description, displayName)
+		return
 	}
 
 	sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_creating"))
@@ -261,6 +308,74 @@ func HandleAppNameText(d *Deps, msg *tgbotapi.Message) {
 		text := fmt.Sprintf(api.GetMessage(lang, "appbuilder_created"), fullName, htmlURL)
 		sendTextMarkdown(d, msg.Chat.ID, text)
 	}
+}
+
+// webPagesDeployTimeout — то ин қадар интизори зинда шудани сайти GitHub Pages
+const webPagesDeployTimeout = 4 * time.Minute
+
+// runWebBuild барномаи ВЕБ месозад: index.html-ро бо AI меофарад, ба репо
+// мегузорад, GitHub Pages-ро фаъол мекунад ва линки зиндаро мефиристад
+func runWebBuild(d *Deps, msg *tgbotapi.Message, lang, description, displayName string) {
+	if !d.AICoder.Enabled() {
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_ai_error"))
+		return
+	}
+
+	// лимити рӯзона (агар корбар "бемаҳдуд" набошад)
+	unlimited, _ := d.Referrals.HasUnlimitedAI(msg.From.ID)
+	if !unlimited {
+		if allowed, retryAfter := checkAIRateLimit(msg.From.ID); !allowed {
+			minutes := int(retryAfter.Round(time.Minute) / time.Minute)
+			if minutes < 1 {
+				minutes = 1
+			}
+			sendText(d, msg.Chat.ID, fmt.Sprintf(api.GetMessage(lang, "ai_rate_limited"), minutes))
+			return
+		}
+	}
+
+	delete(appBuilderSessions, msg.From.ID)
+	sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_creating"))
+
+	fullName, htmlURL, _, err := d.GitHubApp.EnsureUserRepo(msg.From.ID, description)
+	if err != nil {
+		utils.LogError("webbuild: failed to create/get repo for user=%d: %v", msg.From.ID, err)
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_error"))
+		return
+	}
+	if err := d.DB.SaveUserRepo(msg.From.ID, fullName, htmlURL); err != nil {
+		utils.LogError("webbuild: failed to save repo mapping for user=%d: %v", msg.From.ID, err)
+	}
+
+	sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_generating_screen"))
+	web, err := d.AICoder.GenerateWebApp(description)
+	if err != nil {
+		utils.LogError("webbuild: AI web generation failed for %q: %v", description, err)
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_ai_error"))
+		return
+	}
+	if err := d.GitHubApp.PushWebApp(fullName, web.IndexHTML); err != nil {
+		utils.LogError("webbuild: failed to push web app to %s: %v", fullName, err)
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "appbuilder_error"))
+		return
+	}
+
+	if err := d.GitHubApp.EnablePagesFromMain(fullName); err != nil {
+		utils.LogError("webbuild: failed to enable pages for %s: %v", fullName, err)
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "web_pages_failed"))
+		return
+	}
+
+	sendText(d, msg.Chat.ID, api.GetMessage(lang, "web_deploying"))
+	url, err := d.GitHubApp.WaitForPagesLive(fullName, webPagesDeployTimeout, buildPollEvery)
+	if err != nil {
+		utils.LogError("webbuild: pages not live for %s: %v", fullName, err)
+		sendText(d, msg.Chat.ID, api.GetMessage(lang, "web_deploy_timeout"))
+		return
+	}
+
+	text := fmt.Sprintf(api.GetMessage(lang, "web_created"), url, fullName, htmlURL)
+	sendTextMarkdown(d, msg.Chat.ID, text)
 }
 
 // generateAndPushScreen тавсифро ба AI медиҳад ва MVP-и пурраи сохташударо

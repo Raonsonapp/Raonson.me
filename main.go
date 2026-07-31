@@ -566,6 +566,8 @@ func routeCallback(d *handlers.Deps, cb *tgbotapi.CallbackQuery) {
 		handlers.HandleAppEditCallback(d, cb)
 	case strings.HasPrefix(data, "apptransfer:"):
 		handlers.HandleAppTransferConfirmCallback(d, cb)
+	case strings.HasPrefix(data, "apptech:"):
+		handlers.HandleAppTechCallback(d, cb)
 	case data == "back:menu":
 		handlers.HandleBackToMenu(d, cb)
 	default:

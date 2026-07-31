@@ -211,6 +211,126 @@ func (c *AICoderClient) AddFunction(description, newFunction, currentCode string
 	return c.runPromptAcrossModels(prompt)
 }
 
+// GeneratedWeb файли ягонаи index.html-и барномаи веб (HTML+CSS+JS дар як
+// файл)-ро дар бар мегирад
+type GeneratedWeb struct {
+	AppName   string
+	IndexHTML string
+}
+
+// webAppPromptTemplate — генератори барномаи ВЕБ (JavaScript). Мисли
+// генератори Flutter, вале ба ҷои Dart як index.html-и мукаммал (HTML+CSS+JS
+// дар як файл) месозад, ки дар GitHub Pages ҳамчун сайти зинда мизбонӣ мешавад
+const webAppPromptTemplate = `You generate a COMPLETE, realistic single-file web app (one self-contained index.html with inline CSS and JavaScript). It must look and feel like a real, finished mobile-first app, running fully in the browser — no build step, no external frameworks required.
+
+User's app description: %s
+
+Design specification from the design step — follow it for colors, spacing, rounding, typography (if empty, use your own good taste): %s
+
+Build a proper MVP of the app the user described, as a single-page app with several "screens" toggled by a bottom navigation bar (show/hide sections with JS):
+- If the description names or resembles a well-known app, build a GENERIC version of that TYPE of app with its standard screens — but do NOT use the real brand's name, logo, exact brand colors, or claim to be that app. Use the user's chosen name. Examples: social photo app → feed with posts (avatar, image placeholder, like/comment), a stories row, an explore grid, a profile with a photo grid; chat app → chat list + a chat view with bubbles; shop → product grid + cart; video editor → a projects list + an editor mock with a timeline and tool buttons.
+- Populate every screen with a few sample/seed items from a local JS array so it looks complete — never empty placeholders.
+- Make it interactive with vanilla JS: bottom-nav switching, buttons that do something (toggle like, add to cart count, open a simple modal, filter a list). If a feature can use a FREE public API that needs NO key (e.g. https://api.frankfurter.dev/latest for exchange rates), use fetch() with async/await and error handling for real. Otherwise keep it as a local interaction — never fake network data.
+- Mobile-first, modern look: a max-width container centered, a colored top bar, a fixed bottom nav with icons (use inline SVG or unicode/emoji for icons), cards with rounded corners and subtle shadows, system font stack. Use CSS custom properties for the theme color.
+- Use colored <div> boxes (optionally with a gradient and a centered emoji/letter) as image/avatar placeholders — do NOT load external images.
+
+Rules:
+- ONE file only: a complete <!DOCTYPE html> document with <style> and <script> inline. No external CSS/JS/font/image URLs (except an optional keyless public API called via fetch). It must open and work by just double-clicking the file.
+- Valid, self-contained HTML/CSS/JS that runs in any modern browser.
+
+Output format — reply with EXACTLY this and NOTHING else. No JSON, no markdown, no backticks, no code fences, no explanation:
+APP_NAME: <a short app name>
+===HTML_BEGIN===
+<the full raw index.html source, written normally with real line breaks — do NOT escape it or wrap it in quotes or fences>
+===HTML_END===`
+
+// GenerateWebApp барномаи веб (index.html)-ро аз тавсифи корбар месозад
+func (c *AICoderClient) GenerateWebApp(description string) (GeneratedWeb, error) {
+	designSpec := c.generateDesignSpec(description)
+	prompt := fmt.Sprintf(webAppPromptTemplate, description, designSpec)
+
+	var attempts []string
+	for _, model := range c.candidateModels() {
+		content, err := c.callModelRaw(prompt, model)
+		if err != nil {
+			var rle *rateLimitError
+			if errors.As(err, &rle) && rle.retryAfter > 0 && rle.retryAfter <= maxRateLimitWait {
+				time.Sleep(rle.retryAfter)
+				content, err = c.callModelRaw(prompt, model)
+			}
+		}
+		if err != nil {
+			attempts = append(attempts, fmt.Sprintf("%s: %v", model, err))
+			continue
+		}
+		web, perr := parseWebApp(content)
+		if perr != nil {
+			attempts = append(attempts, fmt.Sprintf("%s: parse: %v", model, perr))
+			continue
+		}
+		return web, nil
+	}
+	return GeneratedWeb{}, fmt.Errorf("all models failed — %s", strings.Join(attempts, " | "))
+}
+
+// parseWebApp ҷавоби формати "APP_NAME: ...\n===HTML_BEGIN===\n<html>\n
+// ===HTML_END===>"-ро таҳлил мекунад (бо fallback барои моделҳое, ки формат
+// риоя накунанд)
+func parseWebApp(raw string) (GeneratedWeb, error) {
+	appName := ""
+	if idx := strings.Index(raw, "APP_NAME:"); idx >= 0 {
+		rest := raw[idx+len("APP_NAME:"):]
+		if nl := strings.IndexAny(rest, "\r\n"); nl >= 0 {
+			appName = strings.TrimSpace(rest[:nl])
+		} else {
+			appName = strings.TrimSpace(rest)
+		}
+	}
+
+	html := ""
+	begin := strings.Index(raw, "===HTML_BEGIN===")
+	end := strings.LastIndex(raw, "===HTML_END===")
+	switch {
+	case begin >= 0 && end > begin:
+		html = raw[begin+len("===HTML_BEGIN===") : end]
+	case begin >= 0:
+		return GeneratedWeb{}, fmt.Errorf("response truncated (no HTML_END marker, %d chars)", len(raw))
+	default:
+		html = salvageHTML(raw)
+	}
+
+	html = strings.TrimSpace(html)
+	html = strings.TrimPrefix(html, "```html")
+	html = strings.TrimPrefix(html, "```")
+	html = strings.TrimSuffix(html, "```")
+	html = strings.TrimSpace(html)
+
+	lower := strings.ToLower(html)
+	if !strings.Contains(lower, "<html") || !strings.Contains(lower, "</html>") {
+		return GeneratedWeb{}, fmt.Errorf("no complete HTML document in model output (%d chars)", len(html))
+	}
+	if appName == "" {
+		appName = "My App"
+	}
+	return GeneratedWeb{AppName: appName, IndexHTML: html}, nil
+}
+
+// salvageHTML вақте истифода мешавад, ки модел форматро риоя накарда бошад —
+// аз "<!DOCTYPE" ё "<html" то охир мебарорад ва fence-ро тоза мекунад
+func salvageHTML(raw string) string {
+	s := raw
+	lower := strings.ToLower(s)
+	if i := strings.Index(lower, "<!doctype"); i >= 0 {
+		s = s[i:]
+	} else if i := strings.Index(lower, "<html"); i >= 0 {
+		s = s[i:]
+	}
+	if i := strings.LastIndex(strings.ToLower(s), "</html>"); i >= 0 {
+		s = s[:i+len("</html>")]
+	}
+	return s
+}
+
 // generateDesignSpec модели алоҳидаи "тарроҳ"-ро даъват мекунад, то нақшаи
 // дизайнро (ранг, чойгиршавӣ, шаффофият ва ғ.) пеш аз коднависӣ созад. Агар
 // ин зина ноком шавад (масалан rate-limit), сатри холӣ бармегардад — зинаи

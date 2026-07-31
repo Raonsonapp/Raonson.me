@@ -286,6 +286,58 @@ func (c *GitHubAppClient) CreateOrGetUserRepo(telegramID int64, appName string) 
 	return repo.FullName, repo.HTMLURL, true, nil
 }
 
+// EnsureUserRepo репои корбарро месозад ё мегирад — БЕ илова кардани
+// workflow-ҳои Flutter (барои роҳи веб, ки APK намесозад, балки танҳо
+// GitHub Pages мехоҳад)
+func (c *GitHubAppClient) EnsureUserRepo(telegramID int64, appName string) (fullName string, htmlURL string, isNew bool, err error) {
+	repoName := fmt.Sprintf("app-user-%d", telegramID)
+
+	payload, _ := json.Marshal(map[string]interface{}{
+		"name":        repoName,
+		"description": fmt.Sprintf("App: %s", appName),
+		"private":     false,
+		"auto_init":   true,
+	})
+
+	body, status, err := c.doRequest(http.MethodPost, "/user/repos", payload)
+	if err != nil {
+		return "", "", false, fmt.Errorf("failed to create repo: %w", err)
+	}
+
+	if status == http.StatusUnprocessableEntity && strings.Contains(string(body), "already exists") {
+		owner, ownerErr := c.CurrentOwner()
+		if ownerErr != nil {
+			return "", "", false, fmt.Errorf("repo already exists but failed to resolve owner: %w", ownerErr)
+		}
+		full, url, getErr := c.getRepo(owner, repoName)
+		if getErr != nil {
+			return "", "", false, fmt.Errorf("repo already exists but failed to fetch it: %w", getErr)
+		}
+		return full, url, false, nil
+	}
+
+	if status != http.StatusCreated {
+		return "", "", false, fmt.Errorf("failed to create repo: status %d, body: %s", status, string(body))
+	}
+
+	var repo struct {
+		FullName string `json:"full_name"`
+		HTMLURL  string `json:"html_url"`
+		Owner    struct {
+			Login string `json:"login"`
+		} `json:"owner"`
+	}
+	if err := json.Unmarshal(body, &repo); err != nil {
+		return "", "", false, fmt.Errorf("failed to parse create-repo response: %w", err)
+	}
+	c.mu.Lock()
+	c.owner = repo.Owner.Login
+	c.mu.Unlock()
+
+	time.Sleep(2 * time.Second)
+	return repo.FullName, repo.HTMLURL, true, nil
+}
+
 // FinalizeAppSetup баъд аз CreateOrGetUserRepo даъват мешавад — пеш аз ҳар
 // коднависии AI. Агар logoBytes холӣ набошад, ҳамчун иконка push мешавад;
 // баъд auto-create.yml тавассути workflow_dispatch бо app_name-и дурусти
@@ -1007,4 +1059,72 @@ func (c *GitHubAppClient) ImportCode(fullName string, files map[string][]byte) e
 		utils.LogError("githubapp: failed to trigger import build for %s: %v", fullName, err)
 	}
 	return nil
+}
+
+// PushWebApp index.html-и барномаи веб ва файли .nojekyll-ро ба репо
+// мегузорад (.nojekyll то GitHub Pages HTML-ро бе коркарди Jekyll ҳамон тавр
+// хизмат кунад)
+func (c *GitHubAppClient) PushWebApp(fullName, indexHTML string) error {
+	if err := c.PushFile(fullName, ".nojekyll", "Add .nojekyll", ""); err != nil {
+		utils.LogError("githubapp: failed to push .nojekyll to %s: %v", fullName, err)
+	}
+	return c.PushFile(fullName, "index.html", "Add generated web app", indexHTML)
+}
+
+// EnablePagesFromMain GitHub Pages-ро барои репо фаъол мекунад — манбаъ:
+// шохаи main, папкаи реша. Агар аллакай фаъол бошад, хато намедиҳад
+func (c *GitHubAppClient) EnablePagesFromMain(fullName string) error {
+	payload, _ := json.Marshal(map[string]interface{}{
+		"source": map[string]string{"branch": "main", "path": "/"},
+	})
+	body, status, err := c.doRequest(http.MethodPost, fmt.Sprintf("/repos/%s/pages", fullName), payload)
+	if err != nil {
+		return err
+	}
+	// 201 = сохта шуд; 409 = аллакай фаъол; ҳарду хуб
+	if status == http.StatusCreated || status == http.StatusConflict {
+		return nil
+	}
+	return fmt.Errorf("failed to enable pages: status %d, body: %s", status, truncateStr(string(body), 300))
+}
+
+// GetPagesURL суроға ва вазъи GitHub Pages-и репоро бармегардонад
+func (c *GitHubAppClient) GetPagesURL(fullName string) (url, pageStatus string, err error) {
+	body, status, err := c.doRequest(http.MethodGet, fmt.Sprintf("/repos/%s/pages", fullName), nil)
+	if err != nil {
+		return "", "", err
+	}
+	if status != http.StatusOK {
+		return "", "", fmt.Errorf("failed to get pages info: status %d", status)
+	}
+	var result struct {
+		HTMLURL string `json:"html_url"`
+		Status  string `json:"status"`
+	}
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", "", err
+	}
+	return result.HTMLURL, result.Status, nil
+}
+
+// WaitForPagesLive то зинда шудани сайт (status == "built") мунтазир мешавад
+// ва суроғаи онро бармегардонад. Агар аз timeout гузарад, вале суроға дошта
+// бошад, ҳамоно суроғаро бармегардонад (эҳтимол пас аз чанд лаҳза зинда мешавад)
+func (c *GitHubAppClient) WaitForPagesLive(fullName string, timeout, poll time.Duration) (string, error) {
+	deadline := time.Now().Add(timeout)
+	var lastURL string
+	for time.Now().Before(deadline) {
+		url, st, err := c.GetPagesURL(fullName)
+		if err == nil {
+			lastURL = url
+			if st == "built" {
+				return url, nil
+			}
+		}
+		time.Sleep(poll)
+	}
+	if lastURL != "" {
+		return lastURL, nil
+	}
+	return "", fmt.Errorf("pages did not become live within timeout")
 }
