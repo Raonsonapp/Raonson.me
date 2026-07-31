@@ -108,10 +108,10 @@ func LoadConfig() *Config {
 		Port:             getEnv("PORT", "10000"),
 		YouTubeAPIKey:    getEnv("YOUTUBE_API_KEY", ""),
 		RequiredChannels: parseRequiredChannels(getEnv("REQUIRED_CHANNELS", "")),
-		// Пешфарз ХОМӮШ — то демо бе спонсор бошад. Барои дубора фаъол
-		// кардани gate-и обуна, SPONSOR_ENABLED=true гузоред (рӯйхати
-		// каналҳо дар REQUIRED_CHANNELS нигоҳ дошта мешавад)
-		SponsorEnabled:   getEnv("SPONSOR_ENABLED", "false") == "true",
+		// Пешфарз ФАЪОЛ — gate-и обунаи спонсор кор мекунад (каналҳо аз
+		// REQUIRED_CHANNELS). Барои хомӯш кардан (масалан демо), дар Render
+		// SPONSOR_ENABLED=false гузоред — рӯйхати каналҳо гум намешавад
+		SponsorEnabled:   getEnv("SPONSOR_ENABLED", "true") != "false",
 		AdminChatID:      parseAdminChatID(getEnv("ADMIN_CHAT_ID", "")),
 		PublicBaseURL:    strings.TrimSuffix(getEnv("RENDER_EXTERNAL_URL", ""), "/"),
 		WorldCupEmail:    getEnv("WORLDCUP_API_EMAIL", ""),
